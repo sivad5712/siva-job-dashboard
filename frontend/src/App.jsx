@@ -7,10 +7,13 @@ import {
 import {
   addDoc,
   collection,
+  deleteDoc,
+  doc,
   onSnapshot,
   orderBy,
   query,
   serverTimestamp,
+  updateDoc,
   where,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
@@ -125,6 +128,21 @@ function App() {
       alert("Could not save job. Please try again.");
     } finally {
       setSavingJob(false);
+    }
+  }
+
+  async function handleDeleteJob(jobId) {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this job?"
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      await deleteDoc(doc(db, "jobs", jobId));
+    } catch (err) {
+      console.error("Error deleting job:", err);
+      alert("Could not delete job. Please try again.");
     }
   }
 
@@ -321,25 +339,44 @@ function App() {
             </div>
           ) : (
             <div className="jobs-list">
-              {jobs.map((job) => (
-                <article className="job-item" key={job.id}>
-                  <div>
-                    <p className="job-company">{job.company}</p>
-                    <h3>{job.title}</h3>
+  {jobs.map((job) => (
+    <article className="job-item" key={job.id}>
+      <div className="job-main">
+        <p className="job-company">{job.company}</p>
+        <h3>{job.title}</h3>
 
-                    {job.link && (
-                      <a href={job.link} target="_blank" rel="noreferrer">
-                        View job posting
-                      </a>
-                    )}
+        {job.link && (
+          <a href={job.link} target="_blank" rel="noreferrer">
+            View job posting
+          </a>
+        )}
 
-                    {job.notes && <p className="job-notes">{job.notes}</p>}
-                  </div>
+        {job.notes && <p className="job-notes">{job.notes}</p>}
+      </div>
 
-                  <span className="status-pill">{job.status}</span>
-                </article>
-              ))}
-            </div>
+      <div className="job-actions">
+        <select
+          className="status-select"
+          value={job.status}
+          onChange={(event) => handleStatusChange(job.id, event.target.value)}
+        >
+          <option>Saved</option>
+          <option>Applied</option>
+          <option>Interview</option>
+          <option>Offer</option>
+          <option>Rejected</option>
+        </select>
+
+        <button
+          className="delete-button"
+          onClick={() => handleDeleteJob(job.id)}
+        >
+          Delete
+        </button>
+      </div>
+    </article>
+  ))}
+</div>
           )}
         </section>
       </main>
