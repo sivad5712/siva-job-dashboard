@@ -29,6 +29,21 @@ function App() {
 
   const [jobs, setJobs] = useState([]);
   const [showJobForm, setShowJobForm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const filteredJobs = jobs.filter((job) => {
+  const searchText = searchTerm.toLowerCase();
+
+  const matchesSearch =
+    job.company?.toLowerCase().includes(searchText) ||
+    job.title?.toLowerCase().includes(searchText) ||
+    job.notes?.toLowerCase().includes(searchText);
+
+  const matchesStatus =
+    statusFilter === "All" || job.status === statusFilter;
+
+  return matchesSearch && matchesStatus;
+});
   const [editingJobId, setEditingJobId] = useState(null);
   const [editForm, setEditForm] = useState({
   company: "",
@@ -321,6 +336,40 @@ function App() {
             </button>
           </div>
 
+          <div className="filters-row">
+            <input
+              className="search-input"
+              type="text"
+              placeholder="Search by company, title, or notes..."
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+            />
+
+            <select
+              className="filter-select"
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+            >
+              <option>All</option>
+              <option>Saved</option>
+              <option>Applied</option>
+              <option>Interview</option>
+              <option>Offer</option>
+              <option>Rejected</option>
+            </select>
+
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => {
+                setSearchTerm("");
+                setStatusFilter("All");
+              }}
+            >
+              Clear
+            </button>
+          </div>
+
           {showJobForm && (
             <form className="job-form" onSubmit={handleAddJob}>
               <div className="form-grid">
@@ -398,14 +447,18 @@ function App() {
             </form>
           )}
 
-          {jobs.length === 0 ? (
+          {filteredJobs.length === 0 ? (
             <div className="empty-state">
-              <h3>No jobs added yet</h3>
-              <p>Click Add Job to save your first job application to Firestore.</p>
+              <h3>{jobs.length === 0 ? "No jobs added yet" : "No matching jobs found"}</h3>
+              <p>
+                {jobs.length === 0
+                  ? "Click Add Job to save your first job application to Firestore."
+                  : "Try changing your search text or status filter."}
+              </p>
             </div>
           ) : (
             <div className="jobs-list">
-              {jobs.map((job) => (
+              {filteredJobs.map((job) => (
                 <article className="job-item" key={job.id}>
                   {editingJobId === job.id ? (
                     <form className="edit-job-form" onSubmit={handleUpdateJob}>

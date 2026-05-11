@@ -429,3 +429,38 @@ button:disabled {
   min-height: 100px;
   resize: vertical;
 }
+.filters-row {
+  display: grid;
+  grid-template-columns: 1fr 180px auto;
+  gap: 14px;
+  margin-top: 24px;
+  padding: 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  background: #f8fafc;
+}
+
+.search-input,
+.filter-select {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 15px;
+  font-family: inherit;
+  background: white;
+  color: #0f172a;
+}
+
+.search-input:focus,
+.filter-select:focus {
+  outline: none;
+  border-color: #1e3a5f;
+  box-shadow: 0 0 0 4px rgba(30, 58, 95, 0.12);
+}
+
+@media (max-width: 760px) {
+  .filters-row {
+    grid-template-columns: 1fr;
+  }
+}
