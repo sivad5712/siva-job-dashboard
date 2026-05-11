@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+} from "firebase/auth";
 import {
   addDoc,
   collection,
@@ -19,19 +23,17 @@ function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [loginLoading, setLoginLoading] = useState(false);
   const [error, setError] = useState("");
+
   const [jobs, setJobs] = useState([]);
-
-const [showJobForm, setShowJobForm] = useState(false);
-
-const [jobForm, setJobForm] = useState({
-  company: "",
-  title: "",
-  link: "",
-  status: "Saved",
-  notes: "",
-});
-
-const [savingJob, setSavingJob] = useState(false);
+  const [showJobForm, setShowJobForm] = useState(false);
+  const [jobForm, setJobForm] = useState({
+    company: "",
+    title: "",
+    link: "",
+    status: "Saved",
+    notes: "",
+  });
+  const [savingJob, setSavingJob] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -43,28 +45,28 @@ const [savingJob, setSavingJob] = useState(false);
   }, []);
 
   useEffect(() => {
-  if (!user) {
-    setJobs([]);
-    return;
-  }
+    if (!user) {
+      setJobs([]);
+      return;
+    }
 
-  const jobsQuery = query(
-    collection(db, "jobs"),
-    where("userId", "==", user.uid),
-    orderBy("createdAt", "desc")
-  );
+    const jobsQuery = query(
+  collection(db, "jobs"),
+  where("userId", "==", user.uid),
+  orderBy("createdAt", "desc")
+     );
 
-  const unsubscribe = onSnapshot(jobsQuery, (snapshot) => {
-    const jobsData = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const unsubscribe = onSnapshot(jobsQuery, (snapshot) => {
+      const jobsData = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
 
-    setJobs(jobsData);
-  });
+      setJobs(jobsData);
+    });
 
-  return () => unsubscribe();
-}, [user]);
+    return () => unsubscribe();
+  }, [user]);
 
   async function handleLogin(event) {
     event.preventDefault();
@@ -87,44 +89,44 @@ const [savingJob, setSavingJob] = useState(false);
   }
 
   function handleJobInputChange(event) {
-  const { name, value } = event.target;
+    const { name, value } = event.target;
 
-  setJobForm((currentForm) => ({
-    ...currentForm,
-    [name]: value,
-  }));
-}
-
-async function handleAddJob(event) {
-  event.preventDefault();
-
-  if (!user) return;
-
-  setSavingJob(true);
-
-  try {
-    await addDoc(collection(db, "jobs"), {
-      ...jobForm,
-      userId: user.uid,
-      createdAt: serverTimestamp(),
-    });
-
-    setJobForm({
-      company: "",
-      title: "",
-      link: "",
-      status: "Saved",
-      notes: "",
-    });
-
-    setShowJobForm(false);
-  } catch (err) {
-    console.error("Error adding job:", err);
-    alert("Could not save job. Please try again.");
-  } finally {
-    setSavingJob(false);
+    setJobForm((currentForm) => ({
+      ...currentForm,
+      [name]: value,
+    }));
   }
-}
+
+  async function handleAddJob(event) {
+    event.preventDefault();
+
+    if (!user) return;
+
+    setSavingJob(true);
+
+    try {
+      await addDoc(collection(db, "jobs"), {
+        ...jobForm,
+        userId: user.uid,
+        createdAt: serverTimestamp(),
+      });
+
+      setJobForm({
+        company: "",
+        title: "",
+        link: "",
+        status: "Saved",
+        notes: "",
+      });
+
+      setShowJobForm(false);
+    } catch (err) {
+      console.error("Error adding job:", err);
+      alert("Could not save job. Please try again.");
+    } finally {
+      setSavingJob(false);
+    }
+  }
 
   if (authLoading) {
     return (
@@ -224,112 +226,121 @@ async function handleAddJob(event) {
               <h2>Job Applications</h2>
               <p>Your tracked jobs will appear here.</p>
             </div>
-            <button onClick={() => setShowJobForm(true)}>Add Job</button>
+
+            <button
+              onClick={() => {
+                alert("Add Job button clicked");
+                setShowJobForm(true);
+              }}
+            >
+              Add Job
+            </button>
           </div>
+
           {showJobForm && (
-  <form className="job-form" onSubmit={handleAddJob}>
-    <div className="form-grid">
-      <label>
-        Company
-        <input
-          name="company"
-          value={jobForm.company}
-          onChange={handleJobInputChange}
-          placeholder="Example: Amazon"
-          required
-        />
-      </label>
+            <form className="job-form" onSubmit={handleAddJob}>
+              <div className="form-grid">
+                <label>
+                  Company
+                  <input
+                    name="company"
+                    value={jobForm.company}
+                    onChange={handleJobInputChange}
+                    placeholder="Example: Amazon"
+                    required
+                  />
+                </label>
 
-      <label>
-        Job Title
-        <input
-          name="title"
-          value={jobForm.title}
-          onChange={handleJobInputChange}
-          placeholder="Example: Senior Software Engineer"
-          required
-        />
-      </label>
+                <label>
+                  Job Title
+                  <input
+                    name="title"
+                    value={jobForm.title}
+                    onChange={handleJobInputChange}
+                    placeholder="Example: Senior Software Engineer"
+                    required
+                  />
+                </label>
 
-      <label>
-        Job Link
-        <input
-          name="link"
-          value={jobForm.link}
-          onChange={handleJobInputChange}
-          placeholder="https://..."
-        />
-      </label>
+                <label>
+                  Job Link
+                  <input
+                    name="link"
+                    value={jobForm.link}
+                    onChange={handleJobInputChange}
+                    placeholder="https://..."
+                  />
+                </label>
 
-      <label>
-        Status
-        <select
-          name="status"
-          value={jobForm.status}
-          onChange={handleJobInputChange}
-        >
-          <option>Saved</option>
-          <option>Applied</option>
-          <option>Interview</option>
-          <option>Offer</option>
-          <option>Rejected</option>
-        </select>
-      </label>
-    </div>
+                <label>
+                  Status
+                  <select
+                    name="status"
+                    value={jobForm.status}
+                    onChange={handleJobInputChange}
+                  >
+                    <option>Saved</option>
+                    <option>Applied</option>
+                    <option>Interview</option>
+                    <option>Offer</option>
+                    <option>Rejected</option>
+                  </select>
+                </label>
+              </div>
 
-    <label>
-      Notes
-      <textarea
-        name="notes"
-        value={jobForm.notes}
-        onChange={handleJobInputChange}
-        placeholder="Add notes about recruiter, job requirements, salary, or next steps."
-      />
-    </label>
+              <label>
+                Notes
+                <textarea
+                  name="notes"
+                  value={jobForm.notes}
+                  onChange={handleJobInputChange}
+                  placeholder="Add notes about recruiter, job requirements, salary, or next steps."
+                />
+              </label>
 
-    <div className="form-actions">
-      <button
-        type="button"
-        className="secondary-button"
-        onClick={() => setShowJobForm(false)}
-      >
-        Cancel
-      </button>
+              <div className="form-actions">
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={() => setShowJobForm(false)}
+                >
+                  Cancel
+                </button>
 
-      <button type="submit" disabled={savingJob}>
-        {savingJob ? "Saving..." : "Save Job"}
-      </button>
-    </div>
-  </form>
-)}
-
-          {jobs.length === 0 ? (
-  <div className="empty-state">
-    <h3>No jobs added yet</h3>
-    <p>Click Add Job to save your first job application to Firestore.</p>
-  </div>
-) : (
-  <div className="jobs-list">
-    {jobs.map((job) => (
-      <article className="job-item" key={job.id}>
-        <div>
-          <p className="job-company">{job.company}</p>
-          <h3>{job.title}</h3>
-
-          {job.link && (
-            <a href={job.link} target="_blank" rel="noreferrer">
-              View job posting
-            </a>
+                <button type="submit" disabled={savingJob}>
+                  {savingJob ? "Saving..." : "Save Job"}
+                </button>
+              </div>
+            </form>
           )}
 
-          {job.notes && <p className="job-notes">{job.notes}</p>}
-        </div>
+          {jobs.length === 0 ? (
+            <div className="empty-state">
+              <h3>No jobs added yet</h3>
+              <p>Click Add Job to save your first job application to Firestore.</p>
+            </div>
+          ) : (
+            <div className="jobs-list">
+              {jobs.map((job) => (
+                <article className="job-item" key={job.id}>
+                  <div>
+                    <p className="job-company">{job.company}</p>
+                    <h3>{job.title}</h3>
 
-        <span className="status-pill">{job.status}</span>
-      </article>
-    ))}
-  </div>
-)}
+                    {job.link && (
+                      <a href={job.link} target="_blank" rel="noreferrer">
+                        View job posting
+                      </a>
+                    )}
+
+                    {job.notes && <p className="job-notes">{job.notes}</p>}
+                  </div>
+
+                  <span className="status-pill">{job.status}</span>
+                </article>
+              ))}
+            </div>
+          )}
         </section>
       </main>
     </div>
