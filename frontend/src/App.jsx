@@ -29,6 +29,14 @@ function App() {
 
   const [jobs, setJobs] = useState([]);
   const [showJobForm, setShowJobForm] = useState(false);
+  const [editingJobId, setEditingJobId] = useState(null);
+  const [editForm, setEditForm] = useState({
+  company: "",
+  title: "",
+  link: "",
+  status: "Saved",
+  notes: "",
+});
   const [jobForm, setJobForm] = useState({
     company: "",
     title: "",
@@ -144,6 +152,64 @@ function App() {
       console.error("Error deleting job:", err);
       alert("Could not delete job. Please try again.");
     }
+  }
+
+  function handleStartEdit(job) {
+    setEditingJobId(job.id);
+
+    setEditForm({
+      company: job.company || "",
+      title: job.title || "",
+      link: job.link || "",
+      status: job.status || "Saved",
+      notes: job.notes || "",
+    });
+  }
+
+  function handleEditInputChange(event) {
+    const { name, value } = event.target;
+
+    setEditForm((currentForm) => ({
+      ...currentForm,
+      [name]: value,
+    }));
+  }
+
+  async function handleUpdateJob(event) {
+    event.preventDefault();
+
+    if (!editingJobId) return;
+
+    try {
+      await updateDoc(doc(db, "jobs", editingJobId), {
+        ...editForm,
+      });
+
+      setEditingJobId(null);
+
+      setEditForm({
+        company: "",
+        title: "",
+        link: "",
+        status: "Saved",
+        notes: "",
+      });
+    } catch (err) {
+      console.error("Error updating job:", err);
+      alert("Could not update job. Please try again.");
+    }
+  }
+
+  function handleCancelEdit() {
+    setEditingJobId(null);
+
+    setEditForm({
+      company: "",
+      title: "",
+      link: "",
+      status: "Saved",
+      notes: "",
+    });
   }
 
   if (authLoading) {
@@ -339,44 +405,126 @@ function App() {
             </div>
           ) : (
             <div className="jobs-list">
-  {jobs.map((job) => (
-    <article className="job-item" key={job.id}>
-      <div className="job-main">
-        <p className="job-company">{job.company}</p>
-        <h3>{job.title}</h3>
+              {jobs.map((job) => (
+                <article className="job-item" key={job.id}>
+                  {editingJobId === job.id ? (
+                    <form className="edit-job-form" onSubmit={handleUpdateJob}>
+                      <div className="form-grid">
+                        <label>
+                          Company
+                          <input
+                            name="company"
+                            value={editForm.company}
+                            onChange={handleEditInputChange}
+                            required
+                          />
+                        </label>
 
-        {job.link && (
-          <a href={job.link} target="_blank" rel="noreferrer">
-            View job posting
-          </a>
-        )}
+                        <label>
+                          Job Title
+                          <input
+                            name="title"
+                            value={editForm.title}
+                            onChange={handleEditInputChange}
+                            required
+                          />
+                        </label>
 
-        {job.notes && <p className="job-notes">{job.notes}</p>}
-      </div>
+                        <label>
+                          Job Link
+                          <input
+                            name="link"
+                            value={editForm.link}
+                            onChange={handleEditInputChange}
+                          />
+                        </label>
 
-      <div className="job-actions">
-        <select
-          className="status-select"
-          value={job.status}
-          onChange={(event) => handleStatusChange(job.id, event.target.value)}
-        >
-          <option>Saved</option>
-          <option>Applied</option>
-          <option>Interview</option>
-          <option>Offer</option>
-          <option>Rejected</option>
-        </select>
+                        <label>
+                          Status
+                          <select
+                            name="status"
+                            value={editForm.status}
+                            onChange={handleEditInputChange}
+                          >
+                            <option>Saved</option>
+                            <option>Applied</option>
+                            <option>Interview</option>
+                            <option>Offer</option>
+                            <option>Rejected</option>
+                          </select>
+                        </label>
+                      </div>
 
-        <button
-          className="delete-button"
-          onClick={() => handleDeleteJob(job.id)}
-        >
-          Delete
-        </button>
-      </div>
-    </article>
-  ))}
-</div>
+                      <label>
+                        Notes
+                        <textarea
+                          name="notes"
+                          value={editForm.notes}
+                          onChange={handleEditInputChange}
+                        />
+                      </label>
+
+                      <div className="form-actions">
+                        <button
+                          type="button"
+                          className="secondary-button"
+                          onClick={handleCancelEdit}
+                        >
+                          Cancel
+                        </button>
+
+                        <button type="submit">Save Changes</button>
+                      </div>
+                    </form>
+                  ) : (
+                    <>
+                      <div className="job-main">
+                        <p className="job-company">{job.company}</p>
+                        <h3>{job.title}</h3>
+
+                        {job.link && (
+                          <a href={job.link} target="_blank" rel="noreferrer">
+                            View job posting
+                          </a>
+                        )}
+
+                        {job.notes && <p className="job-notes">{job.notes}</p>}
+                      </div>
+
+                      <div className="job-actions">
+                        <select
+                          className="status-select"
+                          value={job.status}
+                          onChange={(event) =>
+                            handleStatusChange(job.id, event.target.value)
+                          }
+                        >
+                          <option>Saved</option>
+                          <option>Applied</option>
+                          <option>Interview</option>
+                          <option>Offer</option>
+                          <option>Rejected</option>
+                        </select>
+
+                        <button
+                          className="secondary-button"
+                          onClick={() => handleStartEdit(job)}
+                        >
+                          Edit
+                        </button>
+
+                        <button
+                          className="delete-button"
+                          onClick={() => handleDeleteJob(job.id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </article>
+              ))}
+            </div>
           )}
         </section>
       </main>

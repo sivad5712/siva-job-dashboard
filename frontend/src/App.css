@@ -399,3 +399,33 @@ button:disabled {
     width: 100%;
   }
 }
+.edit-job-form {
+  width: 100%;
+  display: grid;
+  gap: 18px;
+}
+
+.edit-job-form label {
+  display: grid;
+  gap: 8px;
+  color: #334155;
+  font-weight: 700;
+}
+
+.edit-job-form input,
+.edit-job-form select,
+.edit-job-form textarea {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 15px;
+  font-family: inherit;
+  background: white;
+  color: #0f172a;
+}
+
+.edit-job-form textarea {
+  min-height: 100px;
+  resize: vertical;
+}
