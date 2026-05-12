@@ -45,11 +45,16 @@ function App() {
   return matchesSearch && matchesStatus;
 });
   const [editingJobId, setEditingJobId] = useState(null);
-  const [editForm, setEditForm] = useState({
+ const [editForm, setEditForm] = useState({
   company: "",
   title: "",
   link: "",
   status: "Saved",
+  source: "LinkedIn",
+  location: "",
+  jobType: "Full-time",
+  salaryRange: "",
+  dateApplied: "",
   notes: "",
 });
   const [jobForm, setJobForm] = useState({
@@ -57,6 +62,11 @@ function App() {
     title: "",
     link: "",
     status: "Saved",
+    source: "LinkedIn",
+    location: "",
+    jobType: "Full-time",
+    salaryRange: "",
+    dateApplied: "",
     notes: "",
   });
   const [savingJob, setSavingJob] = useState(false);
@@ -138,12 +148,12 @@ function App() {
       });
 
       setJobForm({
-        company: "",
-        title: "",
-        link: "",
-        status: "Saved",
-        notes: "",
-      });
+  company: "",
+  title: "",
+  link: "",
+  status: "Saved",
+  notes: "",
+});
 
       setShowJobForm(false);
     } catch (err) {
@@ -173,12 +183,17 @@ function App() {
     setEditingJobId(job.id);
 
     setEditForm({
-      company: job.company || "",
-      title: job.title || "",
-      link: job.link || "",
-      status: job.status || "Saved",
-      notes: job.notes || "",
-    });
+  company: job.company || "",
+  title: job.title || "",
+  link: job.link || "",
+  status: job.status || "Saved",
+  source: job.source || "LinkedIn",
+  location: job.location || "",
+  jobType: job.jobType || "Full-time",
+  salaryRange: job.salaryRange || "",
+  dateApplied: job.dateApplied || "",
+  notes: job.notes || "",
+});
   }
 
   function handleEditInputChange(event) {
@@ -202,13 +217,18 @@ function App() {
 
       setEditingJobId(null);
 
-      setEditForm({
-        company: "",
-        title: "",
-        link: "",
-        status: "Saved",
-        notes: "",
-      });
+    setEditForm({
+  company: "",
+  title: "",
+  link: "",
+  status: "Saved",
+  source: "LinkedIn",
+  location: "",
+  jobType: "Full-time",
+  salaryRange: "",
+  dateApplied: "",
+  notes: "",
+});
     } catch (err) {
       console.error("Error updating job:", err);
       alert("Could not update job. Please try again.");
@@ -219,12 +239,17 @@ function App() {
     setEditingJobId(null);
 
     setEditForm({
-      company: "",
-      title: "",
-      link: "",
-      status: "Saved",
-      notes: "",
-    });
+  company: "",
+  title: "",
+  link: "",
+  status: "Saved",
+  source: "LinkedIn",
+  location: "",
+  jobType: "Full-time",
+  salaryRange: "",
+  dateApplied: "",
+  notes: "",
+});
   }
 
   if (authLoading) {
@@ -420,7 +445,67 @@ function App() {
                   </select>
                 </label>
               </div>
+              <label>
+  Source
+  <select
+    name="source"
+    value={jobForm.source}
+    onChange={handleJobInputChange}
+  >
+    <option>LinkedIn</option>
+    <option>Indeed</option>
+    <option>Company Site</option>
+    <option>Referral</option>
+    <option>Recruiter</option>
+    <option>Other</option>
+  </select>
+</label>
 
+<label>
+  Location
+  <input
+    name="location"
+    value={jobForm.location}
+    onChange={handleJobInputChange}
+    placeholder="Example: Dallas, TX or Remote"
+  />
+</label>
+
+<label>
+  Job Type
+  <select
+    name="jobType"
+    value={jobForm.jobType}
+    onChange={handleJobInputChange}
+  >
+    <option>Full-time</option>
+    <option>Contract</option>
+    <option>Part-time</option>
+    <option>Internship</option>
+    <option>Remote</option>
+    <option>Hybrid</option>
+  </select>
+</label>
+
+<label>
+  Salary Range
+  <input
+    name="salaryRange"
+    value={jobForm.salaryRange}
+    onChange={handleJobInputChange}
+    placeholder="Example: $120k - $150k"
+  />
+</label>
+
+<label>
+  Date Applied
+  <input
+    type="date"
+    name="dateApplied"
+    value={jobForm.dateApplied}
+    onChange={handleJobInputChange}
+  />
+</label>          
               <label>
                 Notes
                 <textarea
@@ -507,7 +592,67 @@ function App() {
                           </select>
                         </label>
                       </div>
+                        <label>
+  Source
+  <select
+    name="source"
+    value={editForm.source}
+    onChange={handleEditInputChange}
+  >
+    <option>LinkedIn</option>
+    <option>Indeed</option>
+    <option>Company Site</option>
+    <option>Referral</option>
+    <option>Recruiter</option>
+    <option>Other</option>
+  </select>
+</label>
 
+<label>
+  Location
+  <input
+    name="location"
+    value={editForm.location}
+    onChange={handleEditInputChange}
+    placeholder="Example: Dallas, TX or Remote"
+  />
+</label>
+
+<label>
+  Job Type
+  <select
+    name="jobType"
+    value={editForm.jobType}
+    onChange={handleEditInputChange}
+  >
+    <option>Full-time</option>
+    <option>Contract</option>
+    <option>Part-time</option>
+    <option>Internship</option>
+    <option>Remote</option>
+    <option>Hybrid</option>
+  </select>
+</label>
+
+<label>
+  Salary Range
+  <input
+    name="salaryRange"
+    value={editForm.salaryRange}
+    onChange={handleEditInputChange}
+    placeholder="Example: $120k - $150k"
+  />
+</label>
+
+<label>
+  Date Applied
+  <input
+    type="date"
+    name="dateApplied"
+    value={editForm.dateApplied}
+    onChange={handleEditInputChange}
+  />
+</label>
                       <label>
                         Notes
                         <textarea
@@ -540,7 +685,13 @@ function App() {
                             View job posting
                           </a>
                         )}
-
+                         <div className="job-meta">
+                           {job.source && <span>Source: {job.source}</span>}
+                           {job.location && <span>Location: {job.location}</span>}
+                           {job.jobType && <span>Type: {job.jobType}</span>}
+                           {job.salaryRange && <span>Salary: {job.salaryRange}</span>}
+                           {job.dateApplied && <span>Applied: {job.dateApplied}</span>}
+                         </div>
                         {job.notes && <p className="job-notes">{job.notes}</p>}
                       </div>
 
