@@ -44,8 +44,17 @@ function App() {
 
   return matchesSearch && matchesStatus;
 });
+  const totalJobs = jobs.length;
+  const savedJobs = jobs.filter((job) => job.status === "Saved").length;
+  const appliedJobs = jobs.filter((job) => job.status === "Applied").length;
+  const interviewJobs = jobs.filter((job) => job.status === "Interview").length;
+  const offerJobs = jobs.filter((job) => job.status === "Offer").length;
+  const rejectedJobs = jobs.filter((job) => job.status === "Rejected").length;
+
+  const responseRate =
+  appliedJobs > 0 ? Math.round((interviewJobs / appliedJobs) * 100) : 0;
   const [editingJobId, setEditingJobId] = useState(null);
- const [editForm, setEditForm] = useState({
+  const [editForm, setEditForm] = useState({
   company: "",
   title: "",
   link: "",
@@ -322,27 +331,42 @@ function App() {
       </header>
 
       <main className="dashboard">
-        <section className="stats-grid">
-          <div className="card">
-            <p>Total Jobs</p>
-            <h2>{jobs.length}</h2>
-          </div>
+        <section className="stats-grid metrics-grid">
+  <div className="card metric-card">
+    <p>Total Jobs</p>
+    <h2>{totalJobs}</h2>
+  </div>
 
-          <div className="card">
-            <p>Applied</p>
-            <h2>{jobs.filter((job) => job.status === "Applied").length}</h2>
-          </div>
+  <div className="card metric-card">
+    <p>Saved</p>
+    <h2>{savedJobs}</h2>
+  </div>
 
-          <div className="card">
-            <p>Interviews</p>
-            <h2>{jobs.filter((job) => job.status === "Interview").length}</h2>
-          </div>
+  <div className="card metric-card">
+    <p>Applied</p>
+    <h2>{appliedJobs}</h2>
+  </div>
 
-          <div className="card">
-            <p>Offers</p>
-            <h2>{jobs.filter((job) => job.status === "Offer").length}</h2>
-          </div>
-        </section>
+  <div className="card metric-card">
+    <p>Interviews</p>
+    <h2>{interviewJobs}</h2>
+  </div>
+
+  <div className="card metric-card">
+    <p>Offers</p>
+    <h2>{offerJobs}</h2>
+  </div>
+
+  <div className="card metric-card">
+    <p>Rejected</p>
+    <h2>{rejectedJobs}</h2>
+  </div>
+
+  <div className="card metric-card highlight-metric">
+    <p>Response Rate</p>
+    <h2>{responseRate}%</h2>
+  </div>
+</section>
 
         <section className="panel">
           <div className="panel-header">
