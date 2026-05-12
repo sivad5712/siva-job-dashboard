@@ -431,7 +431,7 @@ button:disabled {
 }
 .filters-row {
   display: grid;
-  grid-template-columns: 1fr 180px auto;
+  grid-template-columns: 1fr 180px 190px auto;
   gap: 14px;
   margin-top: 24px;
   padding: 18px;

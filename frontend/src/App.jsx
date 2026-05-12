@@ -31,6 +31,7 @@ function App() {
   const [showJobForm, setShowJobForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [sortOption, setSortOption] = useState("newest");
   const filteredJobs = jobs.filter((job) => {
   const searchText = searchTerm.toLowerCase();
 
@@ -43,6 +44,25 @@ function App() {
     statusFilter === "All" || job.status === statusFilter;
 
   return matchesSearch && matchesStatus;
+});
+  const sortedJobs = [...filteredJobs].sort((a, b) => {
+  if (sortOption === "company") {
+    return (a.company || "").localeCompare(b.company || "");
+  }
+
+  if (sortOption === "status") {
+    return (a.status || "").localeCompare(b.status || "");
+  }
+
+  if (sortOption === "dateApplied") {
+    return (b.dateApplied || "").localeCompare(a.dateApplied || "");
+  }
+
+  if (sortOption === "salary") {
+    return (b.salaryRange || "").localeCompare(a.salaryRange || "");
+  }
+
+  return 0;
 });
   const totalJobs = jobs.length;
   const savedJobs = jobs.filter((job) => job.status === "Saved").length;
@@ -386,39 +406,51 @@ function App() {
           </div>
 
           <div className="filters-row">
-            <input
-              className="search-input"
-              type="text"
-              placeholder="Search by company, title, or notes..."
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-            />
+  <input
+    className="search-input"
+    type="text"
+    placeholder="Search by company, title, notes, source, location..."
+    value={searchTerm}
+    onChange={(event) => setSearchTerm(event.target.value)}
+  />
 
-            <select
-              className="filter-select"
-              value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value)}
-            >
-              <option>All</option>
-              <option>Saved</option>
-              <option>Applied</option>
-              <option>Interview</option>
-              <option>Offer</option>
-              <option>Rejected</option>
-            </select>
+  <select
+    className="filter-select"
+    value={statusFilter}
+    onChange={(event) => setStatusFilter(event.target.value)}
+  >
+    <option value="All">All Statuses</option>
+    <option value="Saved">Saved</option>
+    <option value="Applied">Applied</option>
+    <option value="Interview">Interview</option>
+    <option value="Offer">Offer</option>
+    <option value="Rejected">Rejected</option>
+  </select>
 
-            <button
-              type="button"
-              className="secondary-button"
-              onClick={() => {
-                setSearchTerm("");
-                setStatusFilter("All");
-              }}
-            >
-              Clear
-            </button>
-          </div>
+  <select
+    className="filter-select"
+    value={sortOption}
+    onChange={(event) => setSortOption(event.target.value)}
+  >
+    <option value="newest">Newest First</option>
+    <option value="company">Company A-Z</option>
+    <option value="status">Status</option>
+    <option value="dateApplied">Date Applied</option>
+    <option value="salary">Salary Range</option>
+  </select>
 
+  <button
+    type="button"
+    className="secondary-button"
+    onClick={() => {
+      setSearchTerm("");
+      setStatusFilter("All");
+      setSortOption("newest");
+    }}
+  >
+    Clear
+  </button>
+</div>
           {showJobForm && (
             <form className="job-form" onSubmit={handleAddJob}>
               <div className="form-grid">
@@ -556,7 +588,7 @@ function App() {
             </form>
           )}
 
-          {filteredJobs.length === 0 ? (
+          {sortedJobs.length === 0 ? (
             <div className="empty-state">
               <h3>{jobs.length === 0 ? "No jobs added yet" : "No matching jobs found"}</h3>
               <p>
@@ -567,7 +599,7 @@ function App() {
             </div>
           ) : (
             <div className="jobs-list">
-              {filteredJobs.map((job) => (
+              {sortedJobs.map((job) => (
                 <article className="job-item" key={job.id}>
                   {editingJobId === job.id ? (
                     <form className="edit-job-form" onSubmit={handleUpdateJob}>
