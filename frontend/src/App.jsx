@@ -36,9 +36,16 @@ function App() {
   const searchText = searchTerm.toLowerCase();
 
   const matchesSearch =
-    job.company?.toLowerCase().includes(searchText) ||
-    job.title?.toLowerCase().includes(searchText) ||
-    job.notes?.toLowerCase().includes(searchText);
+  job.company?.toLowerCase().includes(searchText) ||
+  job.title?.toLowerCase().includes(searchText) ||
+  job.notes?.toLowerCase().includes(searchText) ||
+  job.source?.toLowerCase().includes(searchText) ||
+  job.location?.toLowerCase().includes(searchText) ||
+  job.jobType?.toLowerCase().includes(searchText) ||
+  job.salaryRange?.toLowerCase().includes(searchText) ||
+  job.recruiterName?.toLowerCase().includes(searchText) ||
+  job.recruiterEmail?.toLowerCase().includes(searchText) ||
+  job.nextAction?.toLowerCase().includes(searchText);
 
   const matchesStatus =
     statusFilter === "All" || job.status === statusFilter;
@@ -84,6 +91,16 @@ const averageMatchScore =
         ) / jobsWithMatchScore.length
       )
     : 0;
+const today = new Date().toISOString().split("T")[0];
+
+const upcomingInterviews = jobs.filter(
+  (job) => job.interviewDate && job.interviewDate >= today
+).length;
+
+const followUpsDue = jobs.filter(
+  (job) => job.followUpDate && job.followUpDate <= today
+).length;
+
   const [editingJobId, setEditingJobId] = useState(null);
   const [editForm, setEditForm] = useState({
   company: "",
@@ -96,6 +113,11 @@ const averageMatchScore =
   salaryRange: "",
   dateApplied: "",
   matchScore: "",
+  recruiterName: "",
+  recruiterEmail: "",
+  interviewDate: "",
+  followUpDate: "",
+  nextAction: "",
   notes: "",
 });
   const [jobForm, setJobForm] = useState({
@@ -109,6 +131,11 @@ const averageMatchScore =
     salaryRange: "",
     dateApplied: "",
     matchScore: "",
+    recruiterName: "",
+   recruiterEmail: "",
+   interviewDate: "",
+   followUpDate: "",
+   nextAction: "",
     notes: "",
   });
   const [savingJob, setSavingJob] = useState(false);
@@ -189,12 +216,22 @@ const averageMatchScore =
         createdAt: serverTimestamp(),
       });
 
-      setJobForm({
+     setJobForm({
   company: "",
   title: "",
   link: "",
   status: "Saved",
+  source: "LinkedIn",
+  location: "",
+  jobType: "Full-time",
+  salaryRange: "",
+  dateApplied: "",
   matchScore: "",
+  recruiterName: "",
+  recruiterEmail: "",
+  interviewDate: "",
+  followUpDate: "",
+  nextAction: "",
   notes: "",
 });
 
@@ -236,6 +273,11 @@ const averageMatchScore =
   salaryRange: job.salaryRange || "",
   dateApplied: job.dateApplied || "",
   matchScore: job.matchScore || "",
+  recruiterName: job.recruiterName || "",
+  recruiterEmail: job.recruiterEmail || "",
+  interviewDate: job.interviewDate || "",
+  followUpDate: job.followUpDate || "",
+  nextAction: job.nextAction || "",
   notes: job.notes || "",
 });
   }
@@ -271,6 +313,11 @@ const averageMatchScore =
   jobType: "Full-time",
   salaryRange: "",
   dateApplied: "",
+  recruiterName: "",
+  recruiterEmail: "",
+  interviewDate: "",
+  followUpDate: "",
+  nextAction: "",
   notes: "",
 });
     } catch (err) {
@@ -292,6 +339,11 @@ const averageMatchScore =
   jobType: "Full-time",
   salaryRange: "",
   dateApplied: "",
+  recruiterName: "",
+  recruiterEmail: "",
+  interviewDate: "",
+  followUpDate: "",
+  nextAction: "",
   notes: "",
 });
   }
@@ -405,6 +457,16 @@ const averageMatchScore =
   <p>Avg Match</p>
   <h2>{averageMatchScore}%</h2>
 </div>
+<div className="card metric-card">
+  <p>Upcoming Interviews</p>
+  <h2>{upcomingInterviews}</h2>
+</div>
+
+<div className="card metric-card">
+  <p>Follow-ups Due</p>
+  <h2>{followUpsDue}</h2>
+</div>
+
 </section>
 
         <section className="panel">
@@ -593,6 +655,58 @@ const averageMatchScore =
     max="100"
   />
 </label>    
+
+<label>
+  Recruiter Name
+  <input
+    name="recruiterName"
+    value={jobForm.recruiterName}
+    onChange={handleJobInputChange}
+    placeholder="Example: Priya Sharma"
+  />
+</label>
+
+<label>
+  Recruiter Email
+  <input
+    type="email"
+    name="recruiterEmail"
+    value={jobForm.recruiterEmail}
+    onChange={handleJobInputChange}
+    placeholder="Example: recruiter@company.com"
+  />
+</label>
+
+<label>
+  Interview Date
+  <input
+    type="date"
+    name="interviewDate"
+    value={jobForm.interviewDate}
+    onChange={handleJobInputChange}
+  />
+</label>
+
+<label>
+  Follow-up Date
+  <input
+    type="date"
+    name="followUpDate"
+    value={jobForm.followUpDate}
+    onChange={handleJobInputChange}
+  />
+</label>
+
+<label>
+  Next Action
+  <input
+    name="nextAction"
+    value={jobForm.nextAction}
+    onChange={handleJobInputChange}
+    placeholder="Example: Send follow-up email"
+  />
+</label>
+
               <label>
                 Notes
                 <textarea
@@ -752,6 +866,58 @@ const averageMatchScore =
     max="100"
   />
 </label>
+
+<label>
+  Recruiter Name
+  <input
+    name="recruiterName"
+    value={editForm.recruiterName}
+    onChange={handleEditInputChange}
+    placeholder="Example: Priya Sharma"
+  />
+</label>
+
+<label>
+  Recruiter Email
+  <input
+    type="email"
+    name="recruiterEmail"
+    value={editForm.recruiterEmail}
+    onChange={handleEditInputChange}
+    placeholder="Example: recruiter@company.com"
+  />
+</label>
+
+<label>
+  Interview Date
+  <input
+    type="date"
+    name="interviewDate"
+    value={editForm.interviewDate}
+    onChange={handleEditInputChange}
+  />
+</label>
+
+<label>
+  Follow-up Date
+  <input
+    type="date"
+    name="followUpDate"
+    value={editForm.followUpDate}
+    onChange={handleEditInputChange}
+  />
+</label>
+
+<label>
+  Next Action
+  <input
+    name="nextAction"
+    value={editForm.nextAction}
+    onChange={handleEditInputChange}
+    placeholder="Example: Send follow-up email"
+  />
+</label>
+
                       <label>
                         Notes
                         <textarea
@@ -791,6 +957,11 @@ const averageMatchScore =
                            {job.salaryRange && <span>Salary: {job.salaryRange}</span>}
                            {job.dateApplied && <span>Applied: {job.dateApplied}</span>}
                            {job.matchScore && <span>Match: {job.matchScore}%</span>}
+                           {job.recruiterName && <span>Recruiter: {job.recruiterName}</span>}
+                           {job.recruiterEmail && <span>Email: {job.recruiterEmail}</span>}
+                           {job.interviewDate && <span>Interview: {job.interviewDate}</span>}
+                           {job.followUpDate && <span>Follow-up: {job.followUpDate}</span>}
+                           {job.nextAction && <span>Next: {job.nextAction}</span>}
                          </div>
                         {job.notes && <p className="job-notes">{job.notes}</p>}
                       </div>
