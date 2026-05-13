@@ -123,6 +123,10 @@ const followUpsDue = jobs.filter(
   interviewDate: "",
   followUpDate: "",
   nextAction: "",
+  jobDescription: "",
+  requiredSkills: "",
+  matchedSkills: "",
+  missingSkills: "",
   notes: "",
 });
   const [jobForm, setJobForm] = useState({
@@ -141,6 +145,10 @@ const followUpsDue = jobs.filter(
    interviewDate: "",
    followUpDate: "",
    nextAction: "",
+   jobDescription: "",
+   requiredSkills: "",
+   matchedSkills: "",
+   missingSkills: "",
     notes: "",
   });
   const [savingJob, setSavingJob] = useState(false);
@@ -218,14 +226,41 @@ const followUpsDue = jobs.filter(
   }, 3000);
 }
 
-  function handleJobInputChange(event) {
-    const { name, value } = event.target;
+  function calculateMatchScore(requiredSkills, matchedSkills) {
+  const requiredList = requiredSkills
+    .split(",")
+    .map((skill) => skill.trim())
+    .filter(Boolean);
 
-    setJobForm((currentForm) => ({
+  const matchedList = matchedSkills
+    .split(",")
+    .map((skill) => skill.trim())
+    .filter(Boolean);
+
+  if (requiredList.length === 0) return "";
+
+  return Math.round((matchedList.length / requiredList.length) * 100);
+}
+
+function handleJobInputChange(event) {
+  const { name, value } = event.target;
+
+  setJobForm((currentForm) => {
+    const updatedForm = {
       ...currentForm,
       [name]: value,
-    }));
-  }
+    };
+
+    if (name === "requiredSkills" || name === "matchedSkills") {
+      updatedForm.matchScore = calculateMatchScore(
+        updatedForm.requiredSkills,
+        updatedForm.matchedSkills
+      );
+    }
+
+    return updatedForm;
+  });
+}
 
   async function handleAddJob(event) {
     event.preventDefault();
@@ -257,6 +292,10 @@ const followUpsDue = jobs.filter(
   interviewDate: "",
   followUpDate: "",
   nextAction: "",
+  jobDescription: "",
+  requiredSkills: "",
+  matchedSkills: "",
+  missingSkills: "",
   notes: "",
 });
 
@@ -332,18 +371,33 @@ async function handleDeleteJob(jobId) {
   interviewDate: job.interviewDate || "",
   followUpDate: job.followUpDate || "",
   nextAction: job.nextAction || "",
+  jobDescription: job.jobDescription || "",
+  requiredSkills: job.requiredSkills || "",
+  matchedSkills: job.matchedSkills || "",
+  missingSkills: job.missingSkills || "",
   notes: job.notes || "",
 });
   }
 
   function handleEditInputChange(event) {
-    const { name, value } = event.target;
+  const { name, value } = event.target;
 
-    setEditForm((currentForm) => ({
+  setEditForm((currentForm) => {
+    const updatedForm = {
       ...currentForm,
       [name]: value,
-    }));
-  }
+    };
+
+    if (name === "requiredSkills" || name === "matchedSkills") {
+      updatedForm.matchScore = calculateMatchScore(
+        updatedForm.requiredSkills,
+        updatedForm.matchedSkills
+      );
+    }
+
+    return updatedForm;
+  });
+}
 
  async function handleUpdateJob(event) {
   event.preventDefault();
@@ -373,6 +427,10 @@ async function handleDeleteJob(jobId) {
       interviewDate: "",
       followUpDate: "",
       nextAction: "",
+      jobDescription: "",
+      requiredSkills: "",
+      matchedSkills: "",
+      missingSkills: "",
       notes: "",
     });
 
@@ -401,6 +459,10 @@ async function handleDeleteJob(jobId) {
   interviewDate: "",
   followUpDate: "",
   nextAction: "",
+  jobDescription: "",
+  requiredSkills: "",
+  matchedSkills: "",
+  missingSkills: "",
   notes: "",
 });
   }
@@ -768,6 +830,45 @@ async function handleDeleteJob(jobId) {
     placeholder="Example: Send follow-up email"
   />
 </label>
+<label>
+  Job Description
+  <textarea
+    name="jobDescription"
+    value={jobForm.jobDescription}
+    onChange={handleJobInputChange}
+    placeholder="Paste the job description here..."
+  />
+</label>
+
+<label>
+  Required Skills
+  <textarea
+    name="requiredSkills"
+    value={jobForm.requiredSkills}
+    onChange={handleJobInputChange}
+    placeholder="Example: Java, Spring Boot, React, AWS, Kubernetes"
+  />
+</label>
+
+<label>
+  Matched Skills
+  <textarea
+    name="matchedSkills"
+    value={jobForm.matchedSkills}
+    onChange={handleJobInputChange}
+    placeholder="Example: Java, Spring Boot, React, AWS"
+  />
+</label>
+
+<label>
+  Missing Skills
+  <textarea
+    name="missingSkills"
+    value={jobForm.missingSkills}
+    onChange={handleJobInputChange}
+    placeholder="Example: Kubernetes, GraphQL"
+  />
+</label>
 
               <label>
                 Notes
@@ -1005,6 +1106,46 @@ async function handleDeleteJob(jobId) {
     placeholder="Example: Send follow-up email"
   />
 </label>
+ 
+ <label>
+  Job Description
+  <textarea
+    name="jobDescription"
+    value={editForm.jobDescription}
+    onChange={handleEditInputChange}
+    placeholder="Paste the job description here..."
+  />
+</label>
+
+<label>
+  Required Skills
+  <textarea
+    name="requiredSkills"
+    value={editForm.requiredSkills}
+    onChange={handleEditInputChange}
+    placeholder="Example: Java, Spring Boot, React, AWS, Kubernetes"
+  />
+</label>
+
+<label>
+  Matched Skills
+  <textarea
+    name="matchedSkills"
+    value={editForm.matchedSkills}
+    onChange={handleEditInputChange}
+    placeholder="Example: Java, Spring Boot, React, AWS"
+  />
+</label>
+
+<label>
+  Missing Skills
+  <textarea
+    name="missingSkills"
+    value={editForm.missingSkills}
+    onChange={handleEditInputChange}
+    placeholder="Example: Kubernetes, GraphQL"
+  />
+</label>
 
                       <label>
                         Notes
@@ -1051,6 +1192,32 @@ async function handleDeleteJob(jobId) {
                            {job.followUpDate && <span>Follow-up: {job.followUpDate}</span>}
                            {job.nextAction && <span>Next: {job.nextAction}</span>}
                          </div>
+                        
+                        {(job.requiredSkills || job.matchedSkills || job.missingSkills) && (
+  <div className="skills-section">
+    {job.requiredSkills && (
+      <div>
+        <h4>Required Skills</h4>
+        <p>{job.requiredSkills}</p>
+      </div>
+    )}
+
+    {job.matchedSkills && (
+      <div>
+        <h4>Matched Skills</h4>
+        <p>{job.matchedSkills}</p>
+      </div>
+    )}
+
+    {job.missingSkills && (
+      <div>
+        <h4>Missing Skills</h4>
+        <p>{job.missingSkills}</p>
+      </div>
+    )}
+  </div>
+)}
+
                         {job.notes && <p className="job-notes">{job.notes}</p>}
                       </div>
 
