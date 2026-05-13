@@ -73,6 +73,17 @@ function App() {
 
   const responseRate =
   appliedJobs > 0 ? Math.round((interviewJobs / appliedJobs) * 100) : 0;
+  const jobsWithMatchScore = jobs.filter((job) => job.matchScore);
+
+const averageMatchScore =
+  jobsWithMatchScore.length > 0
+    ? Math.round(
+        jobsWithMatchScore.reduce(
+          (total, job) => total + Number(job.matchScore),
+          0
+        ) / jobsWithMatchScore.length
+      )
+    : 0;
   const [editingJobId, setEditingJobId] = useState(null);
   const [editForm, setEditForm] = useState({
   company: "",
@@ -84,6 +95,7 @@ function App() {
   jobType: "Full-time",
   salaryRange: "",
   dateApplied: "",
+  matchScore: "",
   notes: "",
 });
   const [jobForm, setJobForm] = useState({
@@ -96,6 +108,7 @@ function App() {
     jobType: "Full-time",
     salaryRange: "",
     dateApplied: "",
+    matchScore: "",
     notes: "",
   });
   const [savingJob, setSavingJob] = useState(false);
@@ -181,6 +194,7 @@ function App() {
   title: "",
   link: "",
   status: "Saved",
+  matchScore: "",
   notes: "",
 });
 
@@ -221,6 +235,7 @@ function App() {
   jobType: job.jobType || "Full-time",
   salaryRange: job.salaryRange || "",
   dateApplied: job.dateApplied || "",
+  matchScore: job.matchScore || "",
   notes: job.notes || "",
 });
   }
@@ -386,6 +401,10 @@ function App() {
     <p>Response Rate</p>
     <h2>{responseRate}%</h2>
   </div>
+  <div className="card metric-card highlight-metric">
+  <p>Avg Match</p>
+  <h2>{averageMatchScore}%</h2>
+</div>
 </section>
 
         <section className="panel">
@@ -561,7 +580,19 @@ function App() {
     value={jobForm.dateApplied}
     onChange={handleJobInputChange}
   />
-</label>          
+</label>      
+<label>
+  Match Score %
+  <input
+    type="number"
+    name="matchScore"
+    value={jobForm.matchScore}
+    onChange={handleJobInputChange}
+    placeholder="Example: 85"
+    min="0"
+    max="100"
+  />
+</label>    
               <label>
                 Notes
                 <textarea
@@ -709,6 +740,18 @@ function App() {
     onChange={handleEditInputChange}
   />
 </label>
+<label>
+  Match Score %
+  <input
+    type="number"
+    name="matchScore"
+    value={editForm.matchScore}
+    onChange={handleEditInputChange}
+    placeholder="Example: 85"
+    min="0"
+    max="100"
+  />
+</label>
                       <label>
                         Notes
                         <textarea
@@ -747,6 +790,7 @@ function App() {
                            {job.jobType && <span>Type: {job.jobType}</span>}
                            {job.salaryRange && <span>Salary: {job.salaryRange}</span>}
                            {job.dateApplied && <span>Applied: {job.dateApplied}</span>}
+                           {job.matchScore && <span>Match: {job.matchScore}%</span>}
                          </div>
                         {job.notes && <p className="job-notes">{job.notes}</p>}
                       </div>
