@@ -26,8 +26,13 @@ function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [loginLoading, setLoginLoading] = useState(false);
   const [error, setError] = useState("");
+  const [appMessage, setAppMessage] = useState({
+  type: "",
+  text: "",
+});
 
   const [jobs, setJobs] = useState([]);
+  const [jobsLoading, setJobsLoading] = useState(false);
   const [showJobForm, setShowJobForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -149,29 +154,41 @@ const followUpsDue = jobs.filter(
     return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    if (!user) {
-      setJobs([]);
-      return;
-    }
+ useEffect(() => {
+  if (!user) {
+    setJobs([]);
+    setJobsLoading(false);
+    return;
+  }
 
-    const jobsQuery = query(
-  collection(db, "jobs"),
-  where("userId", "==", user.uid),
-  orderBy("createdAt", "desc")
-     );
+  setJobsLoading(true);
 
-    const unsubscribe = onSnapshot(jobsQuery, (snapshot) => {
+  const jobsQuery = query(
+    collection(db, "jobs"),
+    where("userId", "==", user.uid),
+    orderBy("createdAt", "desc")
+  );
+
+  const unsubscribe = onSnapshot(
+    jobsQuery,
+    (snapshot) => {
       const jobsData = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
 
       setJobs(jobsData);
-    });
+      setJobsLoading(false);
+    },
+    (err) => {
+      console.error("Error loading jobs:", err);
+      setJobsLoading(false);
+    }
+  );
 
-    return () => unsubscribe();
-  }, [user]);
+  return () => unsubscribe();
+}, [user]);
+
 
   async function handleLogin(event) {
     event.preventDefault();
@@ -192,6 +209,14 @@ const followUpsDue = jobs.filter(
   async function handleLogout() {
     await signOut(auth);
   }
+
+  function showAppMessage(type, text) {
+  setAppMessage({ type, text });
+
+  setTimeout(() => {
+    setAppMessage({ type: "", text: "" });
+  }, 3000);
+}
 
   function handleJobInputChange(event) {
     const { name, value } = event.target;
@@ -236,28 +261,57 @@ const followUpsDue = jobs.filter(
 });
 
       setShowJobForm(false);
+      showAppMessage("success", "Job saved successfully.");
     } catch (err) {
       console.error("Error adding job:", err);
-      alert("Could not save job. Please try again.");
+      showAppMessage("error", "Could not save job. Please try again.");
     } finally {
       setSavingJob(false);
     }
   }
+async function handleStatusChange(jobId, newStatus) {
+  try {
+    await updateDoc(doc(db, "jobs", jobId), {
+      status: newStatus,
+    });
 
-  async function handleDeleteJob(jobId) {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this job?"
-    );
-
-    if (!confirmDelete) return;
-
-    try {
-      await deleteDoc(doc(db, "jobs", jobId));
-    } catch (err) {
-      console.error("Error deleting job:", err);
-      alert("Could not delete job. Please try again.");
-    }
+    showAppMessage("success", "Job status updated.");
+  } catch (err) {
+    console.error("Error updating job status:", err);
+    showAppMessage("error", "Could not update job status. Please try again.");
   }
+}
+
+async function handleDeleteJob(jobId) {
+  const confirmDelete = window.confirm(
+    "Are you sure you want to delete this job?"
+  );
+
+  if (!confirmDelete) return;
+
+  try {
+    await deleteDoc(doc(db, "jobs", jobId));
+    showAppMessage("success", "Job deleted successfully.");
+  } catch (err) {
+    console.error("Error deleting job:", err);
+    showAppMessage("error", "Could not delete job. Please try again.");
+  }
+}
+  async function handleDeleteJob(jobId) {
+  const confirmDelete = window.confirm(
+    "Are you sure you want to delete this job?"
+  );
+
+  if (!confirmDelete) return;
+
+  try {
+    await deleteDoc(doc(db, "jobs", jobId));
+    showAppMessage("success", "Job deleted successfully.");
+  } catch (err) {
+    console.error("Error deleting job:", err);
+    showAppMessage("error", "Could not delete job. Please try again.");
+  }
+}
 
   function handleStartEdit(job) {
     setEditingJobId(job.id);
@@ -291,40 +345,43 @@ const followUpsDue = jobs.filter(
     }));
   }
 
-  async function handleUpdateJob(event) {
-    event.preventDefault();
+ async function handleUpdateJob(event) {
+  event.preventDefault();
 
-    if (!editingJobId) return;
+  if (!editingJobId) return;
 
-    try {
-      await updateDoc(doc(db, "jobs", editingJobId), {
-        ...editForm,
-      });
+  try {
+    await updateDoc(doc(db, "jobs", editingJobId), {
+      ...editForm,
+    });
 
-      setEditingJobId(null);
+    setEditingJobId(null);
 
     setEditForm({
-  company: "",
-  title: "",
-  link: "",
-  status: "Saved",
-  source: "LinkedIn",
-  location: "",
-  jobType: "Full-time",
-  salaryRange: "",
-  dateApplied: "",
-  recruiterName: "",
-  recruiterEmail: "",
-  interviewDate: "",
-  followUpDate: "",
-  nextAction: "",
-  notes: "",
-});
-    } catch (err) {
-      console.error("Error updating job:", err);
-      alert("Could not update job. Please try again.");
-    }
+      company: "",
+      title: "",
+      link: "",
+      status: "Saved",
+      source: "LinkedIn",
+      location: "",
+      jobType: "Full-time",
+      salaryRange: "",
+      dateApplied: "",
+      matchScore: "",
+      recruiterName: "",
+      recruiterEmail: "",
+      interviewDate: "",
+      followUpDate: "",
+      nextAction: "",
+      notes: "",
+    });
+
+    showAppMessage("success", "Job updated successfully.");
+  } catch (err) {
+    console.error("Error updating job:", err);
+    showAppMessage("error", "Could not update job. Please try again.");
   }
+}
 
   function handleCancelEdit() {
     setEditingJobId(null);
@@ -418,6 +475,11 @@ const followUpsDue = jobs.filter(
       </header>
 
       <main className="dashboard">
+        {appMessage.text && (
+  <div className={`app-message ${appMessage.type}`}>
+    {appMessage.text}
+  </div>
+)}
         <section className="stats-grid metrics-grid">
   <div className="card metric-card">
     <p>Total Jobs</p>
@@ -733,15 +795,41 @@ const followUpsDue = jobs.filter(
             </form>
           )}
 
-          {sortedJobs.length === 0 ? (
-            <div className="empty-state">
-              <h3>{jobs.length === 0 ? "No jobs added yet" : "No matching jobs found"}</h3>
-              <p>
-                {jobs.length === 0
-                  ? "Click Add Job to save your first job application to Firestore."
-                  : "Try changing your search text or status filter."}
-              </p>
-            </div>
+          {jobsLoading ? (
+  <div className="empty-state">
+    <h3>Loading jobs...</h3>
+    <p>Please wait while your dashboard data loads.</p>
+  </div>
+) : sortedJobs.length === 0 ? (
+            <div className="empty-state enhanced-empty-state">
+  <div className="empty-icon">
+    {jobs.length === 0 ? "📋" : "🔎"}
+  </div>
+
+  <h3>{jobs.length === 0 ? "No jobs tracked yet" : "No matching jobs found"}</h3>
+
+  <p>
+    {jobs.length === 0
+      ? "Start by adding your first job opportunity. Your applications, interviews, follow-ups, and match scores will appear here."
+      : "Try adjusting your search keyword, status filter, or sorting option to find the jobs you are looking for."}
+  </p>
+
+  {jobs.length === 0 ? (
+    <button onClick={() => setShowJobForm(true)}>Add Your First Job</button>
+  ) : (
+    <button
+      type="button"
+      className="secondary-button"
+      onClick={() => {
+        setSearchTerm("");
+        setStatusFilter("All");
+        setSortOption("newest");
+      }}
+    >
+      Clear Filters
+    </button>
+  )}
+</div>
           ) : (
             <div className="jobs-list">
               {sortedJobs.map((job) => (
@@ -968,7 +1056,7 @@ const followUpsDue = jobs.filter(
 
                       <div className="job-actions">
                         <select
-                          className="status-select"
+                          className={`status-select status-${job.status?.toLowerCase()}`}
                           value={job.status}
                           onChange={(event) =>
                             handleStatusChange(job.id, event.target.value)

@@ -371,11 +371,9 @@ button:disabled {
 }
 
 .status-select {
-  border: 1px solid #cbd5e1;
+  border: 1px solid transparent;
   border-radius: 999px;
   padding: 9px 12px;
-  background: #fef3c7;
-  color: #92400e;
   font-weight: 800;
   font-family: inherit;
 }
@@ -513,5 +511,131 @@ button:disabled {
 @media (max-width: 520px) {
   .metrics-grid {
     grid-template-columns: 1fr;
+  }
+}
+.app-message {
+  margin-bottom: 20px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  font-weight: 800;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+
+.app-message.success {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
+.app-message.error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+.status-saved {
+  background: #f1f5f9;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+
+.status-applied {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border-color: #93c5fd;
+}
+
+.status-interview {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fcd34d;
+}
+
+.status-offer {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #86efac;
+}
+
+.status-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+.enhanced-empty-state {
+  padding: 52px 28px;
+}
+
+.empty-icon {
+  width: 62px;
+  height: 62px;
+  margin: 0 auto 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 22px;
+  background: #f1f5f9;
+  font-size: 30px;
+}
+
+@media (max-width: 900px) {
+  .hero {
+    padding: 48px 6%;
+  }
+
+  .dashboard {
+    width: 94%;
+  }
+
+  .job-actions {
+    flex-wrap: wrap;
+  }
+
+  .status-select,
+  .delete-button,
+  .secondary-button {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 620px) {
+  .hero h1 {
+    font-size: 34px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+  }
+
+  .panel {
+    padding: 22px;
+  }
+
+  .card {
+    padding: 20px;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .form-actions button {
+    width: 100%;
+  }
+
+  .job-actions {
+    flex-direction: column;
+  }
+
+  .job-actions button,
+  .job-actions select {
+    width: 100%;
+  }
+
+  .job-meta span {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .app-message {
+    font-size: 14px;
   }
 }
