@@ -12,6 +12,8 @@ import {
   onSnapshot,
   orderBy,
   query,
+  setDoc,
+  getDoc,
   serverTimestamp,
   updateDoc,
   where,
@@ -33,6 +35,20 @@ function App() {
 
   const [jobs, setJobs] = useState([]);
   const [jobsLoading, setJobsLoading] = useState(false);
+  const [showResumeProfile, setShowResumeProfile] = useState(false);
+
+  const [resumeProfile, setResumeProfile] = useState({
+  summary: "",
+  coreSkills: "Java, Spring Boot, Microservices, React, Angular, REST API, SQL",
+  cloudSkills: "AWS, Azure, Docker, Kubernetes, CI/CD",
+  domainSkills:
+    "Banking, Financial Services, Fraud Detection, Healthcare, FHIR, HL7",
+  yearsOfExperience: "8",
+  targetTitles:
+    "Senior Software Engineer, Java Developer, Full Stack Developer, Backend Engineer, Cloud Engineer",
+});
+
+  const [savingResumeProfile, setSavingResumeProfile] = useState(false);
   const [showJobForm, setShowJobForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -224,6 +240,71 @@ const followUpsDue = jobs.filter(
   setTimeout(() => {
     setAppMessage({ type: "", text: "" });
   }, 3000);
+}
+
+async function handleSaveResumeProfile(event) {
+  event.preventDefault();
+
+  if (!user) return;
+
+  setSavingResumeProfile(true);
+
+  try {
+    await setDoc(
+      doc(db, "users", user.uid),
+      {
+        ...resumeProfile,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+
+    setShowResumeProfile(false);
+    showAppMessage("success", "Resume profile saved successfully.");
+  } catch (err) {
+    console.error("Error saving resume profile:", err);
+    showAppMessage("error", "Could not save resume profile. Please try again.");
+  } finally {
+    setSavingResumeProfile(false);
+  }
+}
+
+async function handleLoadResumeProfile() {
+  if (!user) return;
+
+  try {
+    const profileRef = doc(db, "users", user.uid);
+    const profileSnapshot = await getDoc(profileRef);
+
+    if (profileSnapshot.exists()) {
+      const data = profileSnapshot.data();
+
+      setResumeProfile({
+        summary: data.summary || "",
+        coreSkills:
+          data.coreSkills ||
+          "Java, Spring Boot, Microservices, React, Angular, REST API, SQL",
+        cloudSkills:
+          data.cloudSkills || "AWS, Azure, Docker, Kubernetes, CI/CD",
+        domainSkills:
+          data.domainSkills ||
+          "Banking, Financial Services, Fraud Detection, Healthcare, FHIR, HL7",
+        yearsOfExperience: data.yearsOfExperience || "8",
+        targetTitles:
+          data.targetTitles ||
+          "Senior Software Engineer, Java Developer, Full Stack Developer, Backend Engineer, Cloud Engineer",
+      });
+
+      showAppMessage("success", "Resume profile loaded.");
+    } else {
+      showAppMessage("success", "Default resume profile loaded.");
+    }
+
+    setShowResumeProfile(true);
+  } catch (err) {
+    console.error("Error loading resume profile:", err);
+    showAppMessage("error", "Could not load resume profile.");
+  }
 }
 
   function calculateMatchScore(requiredSkills, matchedSkills) {
@@ -531,9 +612,21 @@ async function handleDeleteJob(jobId) {
           </p>
         </div>
 
+        <div className="header-actions">
+
+          <button
+            className="logout-button"
+            onClick={handleLoadResumeProfile}
+>
+            Resume Profile
+          </button>
+
         <button className="logout-button" onClick={handleLogout}>
-          Logout
-        </button>
+         Logout
+       </button>
+       </div>
+
+
       </header>
 
       <main className="dashboard">
@@ -542,6 +635,134 @@ async function handleDeleteJob(jobId) {
     {appMessage.text}
   </div>
 )}
+
+{showResumeProfile && (
+  <section className="panel resume-profile-panel">
+    <div className="panel-header">
+      <div>
+        <h2>Resume Profile</h2>
+        <p>
+          Store your skills and target roles here. The ATS scoring system will
+          use this profile to rank jobs.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        className="secondary-button"
+        onClick={() => setShowResumeProfile(false)}
+      >
+        Close
+      </button>
+    </div>
+
+    <form className="job-form" onSubmit={handleSaveResumeProfile}>
+      <label>
+        Resume Summary
+        <textarea
+          name="summary"
+          value={resumeProfile.summary}
+          onChange={(event) =>
+            setResumeProfile({
+              ...resumeProfile,
+              summary: event.target.value,
+            })
+          }
+          placeholder="Example: Senior Software Engineer with 8 years of experience in Java, Spring Boot, React, AWS, microservices, and enterprise modernization."
+        />
+      </label>
+
+      <div className="form-grid">
+        <label>
+          Core Skills
+          <textarea
+            name="coreSkills"
+            value={resumeProfile.coreSkills}
+            onChange={(event) =>
+              setResumeProfile({
+                ...resumeProfile,
+                coreSkills: event.target.value,
+              })
+            }
+          />
+        </label>
+
+        <label>
+          Cloud Skills
+          <textarea
+            name="cloudSkills"
+            value={resumeProfile.cloudSkills}
+            onChange={(event) =>
+              setResumeProfile({
+                ...resumeProfile,
+                cloudSkills: event.target.value,
+              })
+            }
+          />
+        </label>
+
+        <label>
+          Domain Skills
+          <textarea
+            name="domainSkills"
+            value={resumeProfile.domainSkills}
+            onChange={(event) =>
+              setResumeProfile({
+                ...resumeProfile,
+                domainSkills: event.target.value,
+              })
+            }
+          />
+        </label>
+
+        <label>
+          Target Job Titles
+          <textarea
+            name="targetTitles"
+            value={resumeProfile.targetTitles}
+            onChange={(event) =>
+              setResumeProfile({
+                ...resumeProfile,
+                targetTitles: event.target.value,
+              })
+            }
+          />
+        </label>
+
+        <label>
+          Years of Experience
+          <input
+            name="yearsOfExperience"
+            value={resumeProfile.yearsOfExperience}
+            onChange={(event) =>
+              setResumeProfile({
+                ...resumeProfile,
+                yearsOfExperience: event.target.value,
+              })
+            }
+            placeholder="Example: 8"
+          />
+        </label>
+      </div>
+
+      <div className="form-actions">
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={() => setShowResumeProfile(false)}
+        >
+          Cancel
+        </button>
+
+        <button type="submit" disabled={savingResumeProfile}>
+            {savingResumeProfile ? "Saving..." : "Save Resume Profile"}
+       </button>
+
+      </div>
+    </form>
+  </section>
+)}
+
         <section className="stats-grid metrics-grid">
   <div className="card metric-card">
     <p>Total Jobs</p>
