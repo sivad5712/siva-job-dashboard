@@ -1258,8 +1258,12 @@ async function handleDeleteJob(jobId) {
           )}
         </section>
       </main>
+      <footer className="app-footer">
+  <p>Siva Job Dashboard · Portfolio Build · v1.0</p>
+</footer>
     </div>
   );
 }
+
 
 export default App;

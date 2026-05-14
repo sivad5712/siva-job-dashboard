@@ -661,3 +661,15 @@ button:disabled {
   line-height: 1.6;
   font-size: 14px;
 }
+.app-footer {
+  width: min(1240px, 92%);
+  margin: 0 auto 36px;
+  color: #64748b;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.app-footer p {
+  margin: 0;
+}
