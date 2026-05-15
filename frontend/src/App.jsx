@@ -53,27 +53,32 @@ function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [sortOption, setSortOption] = useState("newest");
-  const filteredJobs = jobs.filter((job) => {
+  const [matchFilter, setMatchFilter] = useState("all");
+
+ const filteredJobs = jobs.filter((job) => {
   const searchText = searchTerm.toLowerCase();
 
   const matchesSearch =
-  job.company?.toLowerCase().includes(searchText) ||
-  job.title?.toLowerCase().includes(searchText) ||
-  job.notes?.toLowerCase().includes(searchText) ||
-  job.source?.toLowerCase().includes(searchText) ||
-  job.location?.toLowerCase().includes(searchText) ||
-  job.jobType?.toLowerCase().includes(searchText) ||
-  job.salaryRange?.toLowerCase().includes(searchText) ||
-  job.recruiterName?.toLowerCase().includes(searchText) ||
-  job.recruiterEmail?.toLowerCase().includes(searchText) ||
-  job.nextAction?.toLowerCase().includes(searchText);
+    job.company?.toLowerCase().includes(searchText) ||
+    job.title?.toLowerCase().includes(searchText) ||
+    job.notes?.toLowerCase().includes(searchText) ||
+    job.source?.toLowerCase().includes(searchText) ||
+    job.location?.toLowerCase().includes(searchText) ||
+    job.jobType?.toLowerCase().includes(searchText) ||
+    job.salaryRange?.toLowerCase().includes(searchText) ||
+    job.recruiterName?.toLowerCase().includes(searchText) ||
+    job.recruiterEmail?.toLowerCase().includes(searchText) ||
+    job.nextAction?.toLowerCase().includes(searchText);
 
   const matchesStatus =
     statusFilter === "All" || job.status === statusFilter;
 
-  return matchesSearch && matchesStatus;
+  const matchesScore =
+    matchFilter === "all" || Number(job.matchScore || 0) >= 70;
+
+  return matchesSearch && matchesStatus && matchesScore;
 });
-  const sortedJobs = [...filteredJobs].sort((a, b) => {
+const sortedJobs = [...filteredJobs].sort((a, b) => {
   if (sortOption === "company") {
     return (a.company || "").localeCompare(b.company || "");
   }
@@ -323,6 +328,140 @@ async function handleLoadResumeProfile() {
   return Math.round((matchedList.length / requiredList.length) * 100);
 }
 
+function splitCommaList(text) {
+  return text
+    .split(",")
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function calculateSkillCategoryScore(jobText, skillsText, maxPoints) {
+  const skills = splitCommaList(skillsText);
+
+  if (skills.length === 0) return 0;
+
+  const matchedSkills = skills.filter((skill) => {
+    const normalizedSkill = skill.toLowerCase();
+
+    return (
+      jobText.includes(normalizedSkill) ||
+      normalizedSkill
+        .split(" ")
+        .some((word) => word.length > 2 && jobText.includes(word))
+    );
+  });
+
+  return Math.round((matchedSkills.length / skills.length) * maxPoints);
+}
+
+function calculateTitleScore(title, targetTitlesText) {
+  const targetTitles = splitCommaList(targetTitlesText);
+  const lowerTitle = title.toLowerCase();
+
+  if (targetTitles.length === 0) return 5;
+
+  const matched = targetTitles.some((targetTitle) => {
+    const titleWords = targetTitle
+      .split(" ")
+      .filter((word) => word.length > 2);
+
+    return (
+      lowerTitle.includes(targetTitle) ||
+      titleWords.some((word) => lowerTitle.includes(word))
+    );
+  });
+
+  return matched ? 20 : 5;
+}
+
+function calculateExperienceScore(jobText, yearsOfExperience) {
+  const years = Number(yearsOfExperience);
+
+  if (!years) return 5;
+
+  if (
+    jobText.includes(`${years}+ years`) ||
+    jobText.includes(`${years} years`) ||
+    jobText.includes("senior") ||
+    jobText.includes("lead")
+  ) {
+    return 15;
+  }
+
+  if (
+    jobText.includes("5+ years") ||
+    jobText.includes("6+ years") ||
+    jobText.includes("7+ years") ||
+    jobText.includes("8+ years")
+  ) {
+    return years >= 5 ? 15 : 8;
+  }
+
+  if (
+    jobText.includes("3+ years") ||
+    jobText.includes("4+ years")
+  ) {
+    return 10;
+  }
+
+  if (
+    jobText.includes("10+ years") ||
+    jobText.includes("12+ years") ||
+    jobText.includes("15+ years")
+  ) {
+    return years >= 10 ? 15 : 8;
+  }
+
+  return 5;
+}
+
+function calculateATSScore(job, profile) {
+  const jobText = `
+    ${job.title || ""}
+    ${job.company || ""}
+    ${job.location || ""}
+    ${job.jobDescription || ""}
+    ${job.requiredSkills || ""}
+  `.toLowerCase();
+
+  const technicalScore = calculateSkillCategoryScore(
+    jobText,
+    profile.coreSkills,
+    40
+  );
+
+  const titleScore = calculateTitleScore(
+    job.title || "",
+    profile.targetTitles
+  );
+
+  const experienceScore = calculateExperienceScore(
+    jobText,
+    profile.yearsOfExperience
+  );
+
+  const cloudScore = calculateSkillCategoryScore(
+    jobText,
+    profile.cloudSkills,
+    15
+  );
+
+  const domainScore = calculateSkillCategoryScore(
+    jobText,
+    profile.domainSkills,
+    10
+  );
+
+  const totalScore =
+    technicalScore +
+    titleScore +
+    experienceScore +
+    cloudScore +
+    domainScore;
+
+  return Math.min(Math.round(totalScore), 100);
+}
+
 function handleJobInputChange(event) {
   const { name, value } = event.target;
 
@@ -351,11 +490,14 @@ function handleJobInputChange(event) {
     setSavingJob(true);
 
     try {
-      await addDoc(collection(db, "jobs"), {
-        ...jobForm,
-        userId: user.uid,
-        createdAt: serverTimestamp(),
-      });
+      const atsScore = calculateATSScore(jobForm, resumeProfile);
+
+await addDoc(collection(db, "jobs"), {
+  ...jobForm,
+  matchScore: atsScore,
+  userId: user.uid,
+  createdAt: serverTimestamp(),
+});
 
      setJobForm({
   company: "",
@@ -480,14 +622,17 @@ async function handleDeleteJob(jobId) {
   });
 }
 
- async function handleUpdateJob(event) {
+async function handleUpdateJob(event) {
   event.preventDefault();
 
   if (!editingJobId) return;
 
+  const atsScore = calculateATSScore(editForm, resumeProfile);
+
   try {
     await updateDoc(doc(db, "jobs", editingJobId), {
       ...editForm,
+      matchScore: atsScore,
     });
 
     setEditingJobId(null);
@@ -515,7 +660,7 @@ async function handleDeleteJob(jobId) {
       notes: "",
     });
 
-    showAppMessage("success", "Job updated successfully.");
+    showAppMessage("success", `Job updated. ATS score: ${atsScore}%`);
   } catch (err) {
     console.error("Error updating job:", err);
     showAppMessage("error", "Could not update job. Please try again.");
@@ -615,11 +760,11 @@ async function handleDeleteJob(jobId) {
         <div className="header-actions">
 
           <button
-            className="logout-button"
-            onClick={handleLoadResumeProfile}
+  className="logout-button"
+  onClick={() => setShowResumeProfile(true)}
 >
-            Resume Profile
-          </button>
+  Resume Profile
+</button>
 
         <button className="logout-button" onClick={handleLogout}>
          Logout
@@ -853,6 +998,15 @@ async function handleDeleteJob(jobId) {
     <option value="Rejected">Rejected</option>
   </select>
 
+<select
+  className="filter-select"
+  value={matchFilter}
+  onChange={(event) => setMatchFilter(event.target.value)}
+>
+  <option value="all">All Scores</option>
+  <option value="70plus">70%+ Matches</option>
+</select>
+
   <select
     className="filter-select"
     value={sortOption}
@@ -864,15 +1018,18 @@ async function handleDeleteJob(jobId) {
     <option value="dateApplied">Date Applied</option>
     <option value="salary">Salary Range</option>
   </select>
+   
+
 
   <button
     type="button"
     className="secondary-button"
-    onClick={() => {
-      setSearchTerm("");
-      setStatusFilter("All");
-      setSortOption("newest");
-    }}
+  onClick={() => {
+  setSearchTerm("");
+  setStatusFilter("All");
+  setMatchFilter("all");
+  setSortOption("newest");
+}}
   >
     Clear
   </button>
