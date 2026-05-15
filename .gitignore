@@ -6,4 +6,6 @@ venv/
 dist/
 build/
 .firebase/
+serviceAccountKey.jsoncd frontend
 serviceAccountKey.json
+backend/serviceAccountKey.json
