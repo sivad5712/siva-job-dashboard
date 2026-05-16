@@ -71,6 +71,129 @@ def fetch_remotive_jobs():
 
     return jobs
 
+def calculate_skill_score(job_text, skills, max_points):
+    if not skills:
+        return 0
+
+    matched_skills = []
+
+    for skill in skills:
+        skill_lower = skill.lower()
+
+        if skill_lower in job_text:
+            matched_skills.append(skill_lower)
+
+    return round((len(matched_skills) / len(skills)) * max_points)
+
+
+def calculate_title_score(title):
+    target_titles = [
+        "senior software engineer",
+        "software engineer",
+        "java developer",
+        "full stack developer",
+        "backend engineer",
+        "cloud engineer",
+        "devops engineer",
+    ]
+
+    title_lower = title.lower()
+
+    for target_title in target_titles:
+        if target_title in title_lower:
+            return 20
+
+    if "engineer" in title_lower or "developer" in title_lower:
+        return 12
+
+    return 5
+
+
+def calculate_experience_score(job_text):
+    if (
+        "8+ years" in job_text
+        or "8 years" in job_text
+        or "7+ years" in job_text
+        or "7 years" in job_text
+        or "senior" in job_text
+        or "lead" in job_text
+    ):
+        return 15
+
+    if (
+        "5+ years" in job_text
+        or "5 years" in job_text
+        or "6+ years" in job_text
+        or "6 years" in job_text
+    ):
+        return 13
+
+    if "3+ years" in job_text or "4+ years" in job_text:
+        return 10
+
+    if "10+ years" in job_text or "12+ years" in job_text:
+        return 8
+
+    return 5
+
+
+def calculate_backend_ats_score(job):
+    technical_skills = [
+        "java",
+        "spring boot",
+        "spring",
+        "microservices",
+        "react",
+        "angular",
+        "rest api",
+        "sql",
+        "kafka",
+    ]
+
+    cloud_skills = [
+        "aws",
+        "azure",
+        "docker",
+        "kubernetes",
+        "ci/cd",
+        "terraform",
+        "devops",
+        "cloud",
+    ]
+
+    domain_skills = [
+        "banking",
+        "financial services",
+        "finance",
+        "fraud",
+        "healthcare",
+        "fhir",
+        "hl7",
+        "insurance",
+    ]
+
+    job_text = f"""
+    {job.get("title", "")}
+    {job.get("company", "")}
+    {job.get("location", "")}
+    {job.get("description", "")}
+    """.lower()
+
+    technical_score = calculate_skill_score(job_text, technical_skills, 40)
+    title_score = calculate_title_score(job.get("title", ""))
+    experience_score = calculate_experience_score(job_text)
+    cloud_score = calculate_skill_score(job_text, cloud_skills, 15)
+    domain_score = calculate_skill_score(job_text, domain_skills, 10)
+
+    total_score = (
+        technical_score
+        + title_score
+        + experience_score
+        + cloud_score
+        + domain_score
+    )
+
+    return min(round(total_score), 100)
 
 @app.get("/fetch-jobs")
 def fetch_jobs():
@@ -90,7 +213,7 @@ def fetch_jobs():
         )
 
         job["status"] = "Saved"
-        job["matchScore"] = 75
+        job["matchScore"] = calculate_backend_ats_score(job)
         job["updatedAt"] = firestore.SERVER_TIMESTAMP
         job["userId"] = USER_ID
 
