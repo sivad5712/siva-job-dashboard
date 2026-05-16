@@ -8,10 +8,19 @@ from firebase_admin import credentials, firestore
 
 app = FastAPI(title="Siva Job Dashboard API")
 
-cred = credentials.Certificate("serviceAccountKey.json")
+FIREBASE_PROJECT_ID = "siva-job-dashboard"
 
 if not firebase_admin._apps:
-    firebase_admin.initialize_app(cred)
+    if os.path.exists("serviceAccountKey.json"):
+        cred = credentials.Certificate("serviceAccountKey.json")
+        firebase_admin.initialize_app(
+            cred,
+            {"projectId": FIREBASE_PROJECT_ID},
+        )
+    else:
+        firebase_admin.initialize_app(
+            options={"projectId": FIREBASE_PROJECT_ID}
+        )
 
 db = firestore.client()
 USER_ID = "joPaLOq2ZtcLwHajs7m7dxoRnlc2"
