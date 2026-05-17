@@ -551,21 +551,6 @@ async function handleStatusChange(jobId, newStatus) {
   }
 }
 
-async function handleDeleteJob(jobId) {
-  const confirmDelete = window.confirm(
-    "Are you sure you want to delete this job?"
-  );
-
-  if (!confirmDelete) return;
-
-  try {
-    await deleteDoc(doc(db, "jobs", jobId));
-    showAppMessage("success", "Job deleted successfully.");
-  } catch (err) {
-    console.error("Error deleting job:", err);
-    showAppMessage("error", "Could not delete job. Please try again.");
-  }
-}
   async function handleDeleteJob(jobId) {
   const confirmDelete = window.confirm(
     "Are you sure you want to delete this job?"
