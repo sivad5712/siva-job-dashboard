@@ -1304,7 +1304,107 @@ async function handleUpdateJob(event) {
   Add Job
 </button>
           </div>
+<div className="quick-filters">
+  <span>Quick Filters:</span>
 
+  <button
+    type="button"
+    className="quick-filter-button"
+    onClick={() => {
+      setSearchTerm("Java Spring Boot Microservices");
+      setStatusFilter("All");
+      setSourceFilter("All");
+      setMatchFilter("all");
+      setSortOption("newest");
+    }}
+  >
+    Java Backend
+  </button>
+
+  <button
+    type="button"
+    className="quick-filter-button"
+    onClick={() => {
+      setSearchTerm("React Angular Java Full Stack");
+      setStatusFilter("All");
+      setSourceFilter("All");
+      setMatchFilter("all");
+      setSortOption("newest");
+    }}
+  >
+    Full Stack
+  </button>
+
+  <button
+    type="button"
+    className="quick-filter-button"
+    onClick={() => {
+      setSearchTerm("AWS Azure Docker Kubernetes Cloud DevOps");
+      setStatusFilter("All");
+      setSourceFilter("All");
+      setMatchFilter("all");
+      setSortOption("newest");
+    }}
+  >
+    Cloud / DevOps
+  </button>
+
+  <button
+    type="button"
+    className="quick-filter-button"
+    onClick={() => {
+      setSearchTerm("Healthcare FHIR HL7");
+      setStatusFilter("All");
+      setSourceFilter("All");
+      setMatchFilter("all");
+      setSortOption("newest");
+    }}
+  >
+    Healthcare
+  </button>
+
+  <button
+    type="button"
+    className="quick-filter-button"
+    onClick={() => {
+      setSearchTerm("Banking Financial Fraud");
+      setStatusFilter("All");
+      setSourceFilter("All");
+      setMatchFilter("all");
+      setSortOption("newest");
+    }}
+  >
+    Banking
+  </button>
+
+  <button
+    type="button"
+    className="quick-filter-button"
+    onClick={() => {
+      setSearchTerm("Remote");
+      setStatusFilter("All");
+      setSourceFilter("All");
+      setMatchFilter("all");
+      setSortOption("newest");
+    }}
+  >
+    Remote
+  </button>
+
+  <button
+    type="button"
+    className="quick-filter-button"
+    onClick={() => {
+      setSearchTerm("");
+      setStatusFilter("All");
+      setSourceFilter("All");
+      setMatchFilter("70plus");
+      setSortOption("newest");
+    }}
+  >
+    High Match
+  </button>
+</div>
           <div className="filters-row">
   <input
     className="search-input"
