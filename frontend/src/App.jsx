@@ -27,6 +27,7 @@ function App() {
   const [password, setPassword] = useState("");
   const [authLoading, setAuthLoading] = useState(true);
   const [loginLoading, setLoginLoading] = useState(false);
+  const [theme, setTheme] = useState("light");
   const [error, setError] = useState("");
   const [appMessage, setAppMessage] = useState({
   type: "",
@@ -245,6 +246,12 @@ const followUpsDue = jobs.filter(
   setTimeout(() => {
     setAppMessage({ type: "", text: "" });
   }, 3000);
+}
+
+function toggleTheme() {
+  setTheme((currentTheme) =>
+    currentTheme === "light" ? "dark" : "light"
+  );
 }
 
 async function handleSaveResumeProfile(event) {
@@ -746,7 +753,7 @@ async function handleUpdateJob(event) {
   }
 
   return (
-    <div className="app">
+    <div className={`app ${theme === "dark" ? "dark-mode" : "light-mode"}`}>
       <header className="hero">
         <div>
           <p className="eyebrow">Siva Job Dashboard</p>
@@ -757,19 +764,65 @@ async function handleUpdateJob(event) {
           </p>
         </div>
 
-        <div className="header-actions">
+     <div className="header-actions">
+  <div className="header-button-row">
+    <button
+      className="logout-button"
+      onClick={() => setShowResumeProfile(true)}
+    >
+      Resume Profile
+    </button>
 
-          <button
-  className="logout-button"
-  onClick={() => setShowResumeProfile(true)}
->
-  Resume Profile
-</button>
+    <button className="logout-button" onClick={handleLogout}>
+      Logout
+    </button>
+  </div>
 
-        <button className="logout-button" onClick={handleLogout}>
-         Logout
-       </button>
-       </div>
+  <button
+    type="button"
+    className="theme-switch"
+    onClick={toggleTheme}
+    aria-label="Toggle dark mode"
+  >
+    <span className="theme-switch-track">
+      <span className="theme-switch-icon theme-switch-sun" aria-hidden="true">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2" />
+          <path d="M12 20v2" />
+          <path d="m4.93 4.93 1.41 1.41" />
+          <path d="m17.66 17.66 1.41 1.41" />
+          <path d="M2 12h2" />
+          <path d="M20 12h2" />
+          <path d="m6.34 17.66-1.41 1.41" />
+          <path d="m19.07 4.93-1.41 1.41" />
+        </svg>
+      </span>
+
+      <span className="theme-switch-icon theme-switch-moon" aria-hidden="true">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </svg>
+      </span>
+
+      <span className="theme-switch-thumb"></span>
+    </span>
+  </button>
+</div>
 
 
       </header>
@@ -959,7 +1012,7 @@ async function handleUpdateJob(event) {
 
 </section>
 
-        <section className="panel">
+        <section className="panel jobs-panel">
           <div className="panel-header">
             <div>
               <h2>Job Applications</h2>
