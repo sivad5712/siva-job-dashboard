@@ -1283,3 +1283,22 @@ main.dashboard > .panel {
     grid-column: 1 !important;
   }
 }
+.apply-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  margin-top: 10px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2563eb, #60a5fa);
+  color: #ffffff !important;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.28);
+}
+
+.apply-button:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}

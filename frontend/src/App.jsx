@@ -38,16 +38,53 @@ function App() {
   const [jobsLoading, setJobsLoading] = useState(false);
   const [showResumeProfile, setShowResumeProfile] = useState(false);
 
-  const [resumeProfile, setResumeProfile] = useState({
-  summary: "",
-  coreSkills: "Java, Spring Boot, Microservices, React, Angular, REST API, SQL",
-  cloudSkills: "AWS, Azure, Docker, Kubernetes, CI/CD",
+  const defaultResumeProfile = {
+  summary:
+    "Senior Software Engineer with around 8 years of experience designing, optimizing, and deploying scalable enterprise applications. Strong expertise in Java, Spring Boot, microservices, REST and GraphQL APIs, React, Angular, cloud-native architectures, event-driven systems, CI/CD, and data-driven solutions across banking, healthcare, fraud detection, and cloud modernization domains.",
+
+  coreSkills:
+    "Java, Java 11, Spring Boot, Spring MVC, Spring Security, Hibernate, Microservices, REST APIs, GraphQL, JAX-RS, Node.js, Express.js, Scala, Data Structures, Algorithms, Performance Optimization, Distributed Systems",
+
+  frontendSkills:
+    "React, React 18, Angular, Angular 17, Vue.js, JavaScript, TypeScript, HTML5, CSS3, Sass, Bootstrap, RxJS, jQuery, AJAX, WebGL, Three.js, Responsive UI, Dashboards",
+
+  cloudSkills:
+    "AWS, Azure, GCP, AWS EC2, S3, Lambda, RDS, DynamoDB, IAM, CloudWatch, API Gateway, EKS, Azure AKS, Azure Functions, API Management, Azure SQL, Blob Storage, Key Vault, GCP GKE, Google Cloud Memory Store",
+
+  devOpsSkills:
+    "Docker, Kubernetes, Helm, Terraform, CloudFormation, Jenkins, GitHub Actions, GitLab CI/CD, CI/CD Pipelines, AWS CLI, Infrastructure as Code, Zero-downtime Deployments",
+
+  databaseSkills:
+    "PostgreSQL, MySQL, Oracle, DB2, MongoDB, DynamoDB, Cassandra, SQLite, SQL, PL/SQL, Redis, Query Tuning, Indexing, Stored Procedures, Database Optimization",
+
+  apiSecuritySkills:
+    "RESTful APIs, GraphQL, SOAP, FHIR R4, FHIR R5, HL7, OAuth 2.0, JWT, OpenID Connect, Okta, API Gateway, Multi-Factor Authentication, RBAC, ABAC, OWASP, SonarQube, HIPAA, SOC 2, PCI DSS",
+
+  messagingSkills:
+    "Apache Kafka, Kafka Streams, RabbitMQ, ActiveMQ, Event-driven Architecture, Asynchronous Messaging, Real-time Streaming, WebSockets, Server-Sent Events",
+
+  testingMonitoringSkills:
+    "JUnit, Mockito, Jest, Cypress, Postman, Cucumber, TDD, BDD, Prometheus, Grafana, ELK Stack, Splunk, CloudWatch, Application Monitoring, Observability",
+
   domainSkills:
-    "Banking, Financial Services, Fraud Detection, Healthcare, FHIR, HL7",
+    "Banking, Financial Services, Credit Union Core Transformation, Fraud Detection, Real-time Transaction Monitoring, Healthcare, FHIR, HL7, EHR Integration, Claims Data, Care Coordination, IoT, Fleet Telematics, CAD Visualization",
+
+  toolsSkills:
+    "Git, Bitbucket, GitLab, Jira, Confluence, Maven, Swagger, Agile, Scrum, Kanban, SAFe, Sprint Planning, Technical Documentation, Mentoring, Leadership",
+
+  certifications:
+    "Oracle Java SE 11 Developer, Oracle Java SE 8 Programmer, AWS Certified Developer, Microsoft Certified Azure Fundamentals, JP Morgan Chase Software Engineering Job Simulation",
+
   yearsOfExperience: "8",
+
   targetTitles:
-    "Senior Software Engineer, Java Developer, Full Stack Developer, Backend Engineer, Cloud Engineer",
-});
+    "Senior Software Engineer, Sr Software Engineer, Java Developer, Java Backend Developer, Full Stack Developer, Backend Engineer, Spring Boot Developer, Microservices Developer, Cloud Engineer, AWS Developer, Azure Developer, React Developer, Angular Developer, Software Engineer III, Lead Software Engineer, Platform Engineer",
+
+  searchKeywords:
+    "Java Spring Boot, Microservices, React, Angular, AWS, Azure, Kubernetes, Docker, Kafka, REST API, GraphQL, Healthcare FHIR HL7, Banking, Fraud Detection, Cloud Modernization, Full Stack Java Developer",
+};
+
+const [resumeProfile, setResumeProfile] = useState(defaultResumeProfile);
 
   const [savingResumeProfile, setSavingResumeProfile] = useState(false);
   const [showJobForm, setShowJobForm] = useState(false);
@@ -291,21 +328,10 @@ async function handleLoadResumeProfile() {
     if (profileSnapshot.exists()) {
       const data = profileSnapshot.data();
 
-      setResumeProfile({
-        summary: data.summary || "",
-        coreSkills:
-          data.coreSkills ||
-          "Java, Spring Boot, Microservices, React, Angular, REST API, SQL",
-        cloudSkills:
-          data.cloudSkills || "AWS, Azure, Docker, Kubernetes, CI/CD",
-        domainSkills:
-          data.domainSkills ||
-          "Banking, Financial Services, Fraud Detection, Healthcare, FHIR, HL7",
-        yearsOfExperience: data.yearsOfExperience || "8",
-        targetTitles:
-          data.targetTitles ||
-          "Senior Software Engineer, Java Developer, Full Stack Developer, Backend Engineer, Cloud Engineer",
-      });
+     setResumeProfile({
+  ...defaultResumeProfile,
+  ...data,
+});
 
       showAppMessage("success", "Resume profile loaded.");
     } else {
@@ -429,33 +455,46 @@ function calculateATSScore(job, profile) {
     ${job.location || ""}
     ${job.jobDescription || ""}
     ${job.requiredSkills || ""}
+    ${job.description || ""}
   `.toLowerCase();
 
   const technicalScore = calculateSkillCategoryScore(
     jobText,
-    profile.coreSkills,
-    40
+    `${profile.coreSkills || ""}, ${profile.frontendSkills || ""}, ${profile.databaseSkills || ""}`,
+    35
   );
 
   const titleScore = calculateTitleScore(
     job.title || "",
-    profile.targetTitles
+    profile.targetTitles || ""
   );
 
   const experienceScore = calculateExperienceScore(
     jobText,
-    profile.yearsOfExperience
+    profile.yearsOfExperience || ""
   );
 
   const cloudScore = calculateSkillCategoryScore(
     jobText,
-    profile.cloudSkills,
-    15
+    `${profile.cloudSkills || ""}, ${profile.devOpsSkills || ""}`,
+    20
   );
 
   const domainScore = calculateSkillCategoryScore(
     jobText,
-    profile.domainSkills,
+    profile.domainSkills || "",
+    15
+  );
+
+  const securityApiScore = calculateSkillCategoryScore(
+    jobText,
+    profile.apiSecuritySkills || "",
+    10
+  );
+
+  const messagingScore = calculateSkillCategoryScore(
+    jobText,
+    profile.messagingSkills || "",
     10
   );
 
@@ -464,7 +503,9 @@ function calculateATSScore(job, profile) {
     titleScore +
     experienceScore +
     cloudScore +
-    domainScore;
+    domainScore +
+    securityApiScore +
+    messagingScore;
 
   return Math.min(Math.round(totalScore), 100);
 }
@@ -883,6 +924,132 @@ async function handleUpdateJob(event) {
             }
           />
         </label>
+
+        <label>
+  Frontend Skills
+  <textarea
+    name="frontendSkills"
+    value={resumeProfile.frontendSkills}
+    onChange={(event) =>
+      setResumeProfile({
+        ...resumeProfile,
+        frontendSkills: event.target.value,
+      })
+    }
+  />
+</label>
+
+<label>
+  DevOps Skills
+  <textarea
+    name="devOpsSkills"
+    value={resumeProfile.devOpsSkills}
+    onChange={(event) =>
+      setResumeProfile({
+        ...resumeProfile,
+        devOpsSkills: event.target.value,
+      })
+    }
+  />
+</label>
+
+<label>
+  Database Skills
+  <textarea
+    name="databaseSkills"
+    value={resumeProfile.databaseSkills}
+    onChange={(event) =>
+      setResumeProfile({
+        ...resumeProfile,
+        databaseSkills: event.target.value,
+      })
+    }
+  />
+</label>
+
+<label>
+  API & Security Skills
+  <textarea
+    name="apiSecuritySkills"
+    value={resumeProfile.apiSecuritySkills}
+    onChange={(event) =>
+      setResumeProfile({
+        ...resumeProfile,
+        apiSecuritySkills: event.target.value,
+      })
+    }
+  />
+</label>
+
+<label>
+  Messaging & Streaming Skills
+  <textarea
+    name="messagingSkills"
+    value={resumeProfile.messagingSkills}
+    onChange={(event) =>
+      setResumeProfile({
+        ...resumeProfile,
+        messagingSkills: event.target.value,
+      })
+    }
+  />
+</label>
+
+<label>
+  Testing & Monitoring Skills
+  <textarea
+    name="testingMonitoringSkills"
+    value={resumeProfile.testingMonitoringSkills}
+    onChange={(event) =>
+      setResumeProfile({
+        ...resumeProfile,
+        testingMonitoringSkills: event.target.value,
+      })
+    }
+  />
+</label>
+
+<label>
+  Tools & Methodologies
+  <textarea
+    name="toolsSkills"
+    value={resumeProfile.toolsSkills}
+    onChange={(event) =>
+      setResumeProfile({
+        ...resumeProfile,
+        toolsSkills: event.target.value,
+      })
+    }
+  />
+</label>
+
+<label>
+  Certifications
+  <textarea
+    name="certifications"
+    value={resumeProfile.certifications}
+    onChange={(event) =>
+      setResumeProfile({
+        ...resumeProfile,
+        certifications: event.target.value,
+      })
+    }
+  />
+</label>
+
+<label>
+  Search Keywords
+  <textarea
+    name="searchKeywords"
+    value={resumeProfile.searchKeywords}
+    onChange={(event) =>
+      setResumeProfile({
+        ...resumeProfile,
+        searchKeywords: event.target.value,
+      })
+    }
+  />
+</label>
 
         <label>
           Domain Skills
@@ -1590,11 +1757,16 @@ async function handleUpdateJob(event) {
                         <p className="job-company">{job.company}</p>
                         <h3>{job.title}</h3>
 
-                        {job.link && (
-                          <a href={job.link} target="_blank" rel="noreferrer">
-                            View job posting
-                          </a>
-                        )}
+                       {(job.link || job.url) && (
+  <a
+    className="apply-button"
+    href={job.link || job.url}
+    target="_blank"
+    rel="noreferrer"
+  >
+    Apply
+  </a>
+)}
                          <div className="job-meta">
                            {job.source && <span>Source: {job.source}</span>}
                            {job.location && <span>Location: {job.location}</span>}

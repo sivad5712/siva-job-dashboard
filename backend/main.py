@@ -64,16 +64,17 @@ def fetch_remotive_jobs():
     data = response.json()
     jobs = []
 
-    for item in data.get("jobs", [])[:10]:
+    for item in data.get("jobs", [])[:30]:
         job = {
-            "title": item.get("title") or "",
-            "company": item.get("company_name") or "",
-            "location": item.get("candidate_required_location") or "",
-            "url": item.get("url") or "",
-            "source": "Remotive",
-            "description": clean_html(item.get("description")),
-            "status": "New",
-        }
+    "title": item.get("title") or "",
+    "company": item.get("company_name") or "",
+    "location": item.get("candidate_required_location") or "",
+    "link": item.get("url") or "",
+    "url": item.get("url") or "",
+    "source": "Remotive",
+    "description": clean_html(item.get("description")),
+    "status": "Saved",
+}
 
         job["duplicateKey"] = generate_duplicate_key(job)
 
