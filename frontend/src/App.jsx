@@ -218,6 +218,8 @@ const followUpsDue = jobs.filter(
       setAuthLoading(false);
     });
 
+   
+
     return () => unsubscribe();
   }, []);
 
