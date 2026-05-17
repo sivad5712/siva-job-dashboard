@@ -3,6 +3,8 @@ import requests
 import hashlib
 import os
 import re
+from job_providers import fetch_remotive_jobs as fetch_remotive_provider_jobs, fetch_arbeitnow_jobs
+from quota_manager import can_call_provider, record_provider_call, get_quota_status
 import firebase_admin
 from firebase_admin import credentials, firestore
 
@@ -206,6 +208,31 @@ def calculate_backend_ats_score(job):
 
     return min(round(total_score), 100)
 
+def save_or_update_job(job):
+    duplicate_key = job.get("duplicateKey") or generate_duplicate_key(job)
+    job["duplicateKey"] = duplicate_key
+
+    existing_jobs = list(
+        db.collection("jobs")
+        .where("duplicateKey", "==", duplicate_key)
+        .limit(1)
+        .stream()
+    )
+
+    job["status"] = job.get("status") or "Saved"
+    job["matchScore"] = calculate_backend_ats_score(job)
+    job["updatedAt"] = firestore.SERVER_TIMESTAMP
+    job["userId"] = USER_ID
+
+    if existing_jobs:
+        existing_doc = existing_jobs[0]
+        existing_doc.reference.set(job, merge=True)
+        return "updated"
+
+    job["createdAt"] = firestore.SERVER_TIMESTAMP
+    db.collection("jobs").add(job)
+    return "saved"
+
 @app.get("/fetch-jobs")
 def fetch_jobs():
     jobs = fetch_remotive_jobs()
@@ -214,38 +241,110 @@ def fetch_jobs():
     updated_count = 0
 
     for job in jobs:
-        duplicate_key = job["duplicateKey"]
+        result = save_or_update_job(job)
 
-        existing_jobs = list(
-            db.collection("jobs")
-            .where("duplicateKey", "==", duplicate_key)
-            .limit(1)
-            .stream()
-        )
-
-        job["status"] = "Saved"
-        job["matchScore"] = calculate_backend_ats_score(job)
-        job["updatedAt"] = firestore.SERVER_TIMESTAMP
-        job["userId"] = USER_ID
-
-        if existing_jobs:
-            existing_doc = existing_jobs[0]
-            existing_doc.reference.set(job, merge=True)
+        if result == "saved":
+            saved_count += 1
+        elif result == "updated":
             updated_count += 1
-            continue
-
-        job["createdAt"] = firestore.SERVER_TIMESTAMP
-
-        db.collection("jobs").add(job)
-        saved_count += 1
 
     return {
         "message": "Job fetch completed",
+        "source": "Remotive",
         "fetched": len(jobs),
         "saved": saved_count,
         "updatedExisting": updated_count,
     }
 
+@app.get("/fetch-all-jobs")
+def fetch_all_jobs():
+    providers = [
+        {
+            "name": "Remotive",
+            "fetch_function": lambda: fetch_remotive_provider_jobs(
+                keyword="java spring boot react angular aws",
+                limit=30,
+            ),
+        },
+        {
+            "name": "Arbeitnow",
+            "fetch_function": lambda: fetch_arbeitnow_jobs(limit=30),
+        },
+    ]
+
+    total_fetched = 0
+    total_saved = 0
+    total_updated = 0
+    provider_results = []
+
+    for provider in providers:
+        provider_name = provider["name"]
+
+        allowed, reason = can_call_provider(provider_name)
+
+        if not allowed:
+            provider_results.append(
+                {
+                    "provider": provider_name,
+                    "status": "skipped",
+                    "reason": reason,
+                }
+            )
+            continue
+
+        try:
+            record_provider_call(provider_name)
+
+            jobs = provider["fetch_function"]()
+            total_fetched += len(jobs)
+
+            saved_count = 0
+            updated_count = 0
+
+            for job in jobs:
+                result = save_or_update_job(job)
+
+                if result == "saved":
+                    saved_count += 1
+                elif result == "updated":
+                    updated_count += 1
+
+            total_saved += saved_count
+            total_updated += updated_count
+
+            provider_results.append(
+                {
+                    "provider": provider_name,
+                    "status": "success",
+                    "fetched": len(jobs),
+                    "saved": saved_count,
+                    "updated": updated_count,
+                }
+            )
+
+        except Exception as error:
+            provider_results.append(
+                {
+                    "provider": provider_name,
+                    "status": "failed",
+                    "error": str(error),
+                }
+            )
+
+    return {
+        "message": "Multi-provider job fetch completed",
+        "totalFetched": total_fetched,
+        "totalSaved": total_saved,
+        "totalUpdated": total_updated,
+        "providers": provider_results,
+        "quota": get_quota_status(),
+    }
+
+@app.get("/provider-quotas")
+def provider_quotas_status():
+    return {
+        "providers": get_quota_status()
+    }
 
 @app.get("/preview-jobs")
 def preview_jobs():
