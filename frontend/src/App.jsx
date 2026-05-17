@@ -90,6 +90,7 @@ const [resumeProfile, setResumeProfile] = useState(defaultResumeProfile);
   const [showJobForm, setShowJobForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [sourceFilter, setSourceFilter] = useState("All");
   const [sortOption, setSortOption] = useState("newest");
   const [matchFilter, setMatchFilter] = useState("all");
 
@@ -111,10 +112,13 @@ const [resumeProfile, setResumeProfile] = useState(defaultResumeProfile);
   const matchesStatus =
     statusFilter === "All" || job.status === statusFilter;
 
+  const matchesSource =
+    sourceFilter === "All" || job.source === sourceFilter;
+
   const matchesScore =
     matchFilter === "all" || Number(job.matchScore || 0) >= 70;
 
-  return matchesSearch && matchesStatus && matchesScore;
+  return matchesSearch && matchesStatus && matchesSource && matchesScore;
 });
 const sortedJobs = [...filteredJobs].sort((a, b) => {
   if (sortOption === "company") {
@@ -1205,6 +1209,22 @@ async function handleUpdateJob(event) {
     <option value="Rejected">Rejected</option>
   </select>
 
+  <select
+  className="filter-select"
+  value={sourceFilter}
+  onChange={(event) => setSourceFilter(event.target.value)}
+>
+  <option value="All">All Sources</option>
+  <option value="Remotive">Remotive</option>
+  <option value="Arbeitnow">Arbeitnow</option>
+  <option value="LinkedIn">LinkedIn</option>
+  <option value="Indeed">Indeed</option>
+  <option value="Company Site">Company Site</option>
+  <option value="Referral">Referral</option>
+  <option value="Recruiter">Recruiter</option>
+  <option value="Other">Other</option>
+</select>
+
 <select
   className="filter-select"
   value={matchFilter}
@@ -1231,9 +1251,10 @@ async function handleUpdateJob(event) {
   <button
     type="button"
     className="secondary-button"
-  onClick={() => {
+ onClick={() => {
   setSearchTerm("");
   setStatusFilter("All");
+  setSourceFilter("All");
   setMatchFilter("all");
   setSortOption("newest");
 }}
