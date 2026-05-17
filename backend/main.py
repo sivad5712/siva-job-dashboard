@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import requests
 import hashlib
 import os
@@ -9,6 +10,18 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 
 app = FastAPI(title="Siva Job Dashboard API")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "https://siva-job-dashboard.web.app",
+        "https://siva-job-dashboard.firebaseapp.com",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 FIREBASE_PROJECT_ID = "siva-job-dashboard"
 

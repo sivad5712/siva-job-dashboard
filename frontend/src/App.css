@@ -1229,71 +1229,7 @@ button:disabled {
     grid-template-columns: 1fr !important;
   }
 }
-/* ===============================
-   FINAL LAYOUT: Metrics Left, Jobs Right
-   =============================== */
 
-main.dashboard {
-  width: min(1500px, 96%) !important;
-  margin: 40px auto 60px !important;
-  display: grid !important;
-  grid-template-columns: 300px minmax(0, 1fr) !important;
-  gap: 26px !important;
-  align-items: start !important;
-}
-/* Resume profile/message should stretch full width */
-main.dashboard > .app-message,
-main.dashboard > .resume-profile-panel {
-  grid-column: 1 / -1 !important;
-}
-
-/* LEFT SIDE: metric cards */
-main.dashboard > .stats-grid.metrics-grid {
-  grid-column: 1 !important;
-  display: grid !important;
-  grid-template-columns: 1fr !important;
-  gap: 14px !important;
-  margin: 0 !important;
-}
-
-/* Metric cards left side size */
-main.dashboard > .stats-grid.metrics-grid .metric-card {
-  width: 100% !important;
-  min-height: 105px !important;
-  padding: 18px !important;
-  border-radius: 20px !important;
-}
-
-main.dashboard > .stats-grid.metrics-grid .metric-card p {
-  font-size: 15px !important;
-  line-height: 1.35 !important;
-}
-
-main.dashboard > .stats-grid.metrics-grid .metric-card h2 {
-  font-size: 32px !important;
-  margin-top: 8px !important;
-}
-
-/* RIGHT SIDE: Job Applications */
-main.dashboard > .jobs-panel,
-main.dashboard > .panel {
-  grid-column: 2 !important;
-  min-width: 0 !important;
-  margin: 0 !important;
-}
-
-/* Mobile */
-@media (max-width: 950px) {
-  main.dashboard {
-    grid-template-columns: 1fr !important;
-  }
-
-  main.dashboard > .stats-grid.metrics-grid,
-  main.dashboard > .jobs-panel,
-  main.dashboard > .panel {
-    grid-column: 1 !important;
-  }
-}
 .apply-button {
   display: inline-flex;
   align-items: center;
@@ -1886,5 +1822,231 @@ button:hover {
   button {
     transition: none !important;
     transform: none !important;
+  }
+}
+/* ===============================
+   Provider Status Panel
+   =============================== */
+
+.provider-status-panel {
+  margin-bottom: 24px;
+}
+
+.provider-status-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.provider-status-item {
+  padding: 16px;
+  border-radius: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.provider-status-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.provider-status-top strong {
+  color: #0f172a;
+  font-size: 16px;
+}
+
+.provider-status-top span {
+  color: #64748b;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.provider-progress-track {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #e2e8f0;
+}
+
+.provider-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(135deg, #2563eb, #60a5fa);
+}
+
+.provider-status-item p,
+.provider-empty {
+  margin: 10px 0 0;
+  color: #64748b;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* Dark mode */
+.app.dark-mode .provider-status-item {
+  background: rgba(15, 23, 42, 0.82);
+  border-color: rgba(148, 163, 184, 0.18);
+}
+
+.app.dark-mode .provider-status-top strong {
+  color: #f8fafc;
+}
+
+.app.dark-mode .provider-status-top span,
+.app.dark-mode .provider-status-item p,
+.app.dark-mode .provider-empty {
+  color: #cbd5e1;
+}
+
+.app.dark-mode .provider-progress-track {
+  background: rgba(148, 163, 184, 0.18);
+}
+.provider-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.provider-actions button {
+  min-height: 42px;
+}
+
+/* ===============================
+   Collapse / Expand Arrow Button
+   =============================== */
+
+.collapse-button {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.collapse-button:hover {
+  background: #e2e8f0;
+  transform: translateY(-2px);
+}
+
+.app.dark-mode .collapse-button {
+  background: rgba(15, 23, 42, 0.95);
+  color: #f8fafc;
+  border-color: rgba(148, 163, 184, 0.28);
+}
+
+.app.dark-mode .collapse-button:hover {
+  background: rgba(30, 41, 59, 0.96);
+}
+/* ===============================
+   FINAL CLEAN LAYOUT
+   Metrics left, panels right, no large gap
+   =============================== */
+
+main.dashboard {
+  width: min(1500px, 96%) !important;
+  margin: 40px auto 60px !important;
+  display: block !important;
+  position: relative !important;
+}
+
+/* LEFT SIDE: metrics column */
+main.dashboard > .stats-grid.metrics-grid {
+  float: left !important;
+  width: 300px !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 14px !important;
+  margin: 0 !important;
+}
+
+/* RIGHT SIDE: provider panel */
+main.dashboard > .provider-status-panel {
+  margin-left: 326px !important;
+  margin-bottom: 14px !important;
+  width: calc(100% - 326px) !important;
+}
+
+/* RIGHT SIDE: jobs panel directly below provider */
+main.dashboard > .jobs-panel {
+  margin-left: 326px !important;
+  margin-top: 0 !important;
+  width: calc(100% - 326px) !important;
+}
+
+/* Full-width items */
+main.dashboard > .app-message,
+main.dashboard > .resume-profile-panel {
+  clear: both !important;
+  width: 100% !important;
+  margin-left: 0 !important;
+  margin-bottom: 20px !important;
+}
+
+/* Make footer start below floated metrics */
+.app-footer {
+  clear: both !important;
+}
+
+/* Metric cards left side size */
+main.dashboard > .stats-grid.metrics-grid .metric-card {
+  width: 100% !important;
+  min-height: 105px !important;
+  padding: 18px !important;
+  border-radius: 20px !important;
+}
+
+main.dashboard > .stats-grid.metrics-grid .metric-card p {
+  font-size: 15px !important;
+  line-height: 1.35 !important;
+}
+
+main.dashboard > .stats-grid.metrics-grid .metric-card h2 {
+  font-size: 32px !important;
+  margin-top: 8px !important;
+}
+
+/* Provider collapsed spacing */
+.provider-status-panel {
+  margin-bottom: 14px !important;
+}
+
+.provider-status-panel .panel-header {
+  padding-bottom: 0 !important;
+  border-bottom: 0 !important;
+}
+
+.provider-status-panel:has(.provider-status-list) .panel-header {
+  padding-bottom: 22px !important;
+  border-bottom: 1px solid #edf2f7 !important;
+}
+
+.app.dark-mode .provider-status-panel:has(.provider-status-list) .panel-header {
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18) !important;
+}
+
+/* Mobile/tablet */
+@media (max-width: 950px) {
+  main.dashboard > .stats-grid.metrics-grid {
+    float: none !important;
+    width: 100% !important;
+    margin-bottom: 18px !important;
+  }
+
+  main.dashboard > .provider-status-panel,
+  main.dashboard > .jobs-panel {
+    margin-left: 0 !important;
+    width: 100% !important;
   }
 }

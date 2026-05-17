@@ -22,6 +22,8 @@ import { auth, db } from "./firebase";
 import "./App.css";
 
 function App() {
+  const BACKEND_API_URL =
+  "https://siva-job-dashboard-api-1015605186695.us-central1.run.app";
   const [user, setUser] = useState(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,6 +39,11 @@ function App() {
   const [jobs, setJobs] = useState([]);
   const [jobsLoading, setJobsLoading] = useState(false);
   const [showResumeProfile, setShowResumeProfile] = useState(false);
+  const [providerQuotas, setProviderQuotas] = useState([]);
+const [quotaLoading, setQuotaLoading] = useState(false);
+const [importingJobs, setImportingJobs] = useState(false);
+const [showProviderStatus, setShowProviderStatus] = useState(true);
+
 
   const defaultResumeProfile = {
   summary:
@@ -233,7 +240,7 @@ const followUpsDue = jobs.filter(
     setJobsLoading(false);
     return;
   }
-
+  loadProviderQuotas();
   setJobsLoading(true);
 
   const jobsQuery = query(
@@ -289,6 +296,48 @@ const followUpsDue = jobs.filter(
   setTimeout(() => {
     setAppMessage({ type: "", text: "" });
   }, 3000);
+}
+
+async function loadProviderQuotas() {
+  setQuotaLoading(true);
+
+  try {
+    const response = await fetch(`${BACKEND_API_URL}/provider-quotas`);
+    const data = await response.json();
+
+    setProviderQuotas(data.providers || []);
+  } catch (err) {
+    console.error("Error loading provider quotas:", err);
+  } finally {
+    setQuotaLoading(false);
+  }
+}
+
+async function handleFetchNewJobs() {
+  setImportingJobs(true);
+
+  try {
+    const response = await fetch(`${BACKEND_API_URL}/fetch-all-jobs`);
+    const data = await response.json();
+
+    await loadProviderQuotas();
+
+    showAppMessage(
+  "success",
+  `Job import complete: fetched ${data.totalFetched || 0}, saved ${data.totalSaved || 0}, updated ${data.totalUpdated || 0}.`
+);
+
+window.scrollTo({
+  top: 0,
+  behavior: "smooth",
+});
+
+  } catch (err) {
+    console.error("Error fetching new jobs:", err);
+    showAppMessage("error", "Could not fetch new jobs. Please try again.");
+  } finally {
+    setImportingJobs(false);
+  }
 }
 
 function toggleTheme() {
@@ -598,13 +647,7 @@ async function handleStatusChange(jobId, newStatus) {
   }
 }
 
-  async function handleDeleteJob(jobId) {
-  const confirmDelete = window.confirm(
-    "Are you sure you want to delete this job?"
-  );
-
-  if (!confirmDelete) return;
-
+async function handleDeleteJob(jobId) {
   try {
     await deleteDoc(doc(db, "jobs", jobId));
     showAppMessage("success", "Job deleted successfully.");
@@ -1169,6 +1212,84 @@ async function handleUpdateJob(event) {
 </div>
 
 </section>
+<section className="panel provider-status-panel">
+  <div className="panel-header">
+    <div>
+      <h2>Provider Status</h2>
+      <p>Quota usage for connected job boards.</p>
+    </div>
+
+    <div className="provider-actions">
+      <button
+        type="button"
+        className="collapse-button"
+        onClick={() => setShowProviderStatus(!showProviderStatus)}
+        aria-label={
+          showProviderStatus
+            ? "Collapse provider status"
+            : "Expand provider status"
+        }
+      >
+        {showProviderStatus ? "▲" : "▼"}
+      </button>
+
+      <button
+        type="button"
+        className="secondary-button"
+        onClick={loadProviderQuotas}
+        disabled={quotaLoading}
+      >
+        {quotaLoading ? "Refreshing..." : "Refresh"}
+      </button>
+
+      <button
+        type="button"
+        onClick={handleFetchNewJobs}
+        disabled={importingJobs}
+      >
+        {importingJobs ? "Fetching..." : "Fetch New Jobs"}
+      </button>
+    </div>
+  </div>
+
+  {showProviderStatus && (
+    <div className="provider-status-list">
+      {providerQuotas.length === 0 ? (
+        <p className="provider-empty">No provider quota data loaded yet.</p>
+      ) : (
+        providerQuotas.map((provider) => {
+          const used = provider.usedCalls || 0;
+          const max = provider.maxCalls || 1;
+          const percentage = Math.min(Math.round((used / max) * 100), 100);
+
+          return (
+            <div className="provider-status-item" key={provider.provider}>
+              <div className="provider-status-top">
+                <strong>{provider.provider}</strong>
+                <span>
+                  {used} / {max} calls used
+                </span>
+              </div>
+
+              <div className="provider-progress-track">
+                <div
+                  className="provider-progress-fill"
+                  style={{ width: `${percentage}%` }}
+                ></div>
+              </div>
+
+              <p>
+                {provider.pausedUntil
+                  ? "Paused until reset"
+                  : "Active and available"}
+              </p>
+            </div>
+          );
+        })
+      )}
+    </div>
+  )}
+</section>
 
         <section className="panel jobs-panel">
           <div className="panel-header">
@@ -1177,14 +1298,11 @@ async function handleUpdateJob(event) {
               <p>Your tracked jobs will appear here.</p>
             </div>
 
-            <button
-              onClick={() => {
-                alert("Add Job button clicked");
-                setShowJobForm(true);
-              }}
-            >
-              Add Job
-            </button>
+           <button
+  onClick={() => setShowJobForm(true)}
+>
+  Add Job
+</button>
           </div>
 
           <div className="filters-row">
