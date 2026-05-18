@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 import requests
 import hashlib
@@ -221,7 +221,7 @@ def calculate_backend_ats_score(job):
 
     return min(round(total_score), 100)
 
-def save_or_update_job(job):
+def save_or_update_job(job, min_score=70):
     duplicate_key = job.get("duplicateKey") or generate_duplicate_key(job)
     job["duplicateKey"] = duplicate_key
 
@@ -234,6 +234,8 @@ def save_or_update_job(job):
 
     job["status"] = job.get("status") or "Saved"
     job["matchScore"] = calculate_backend_ats_score(job)
+    if job["matchScore"] < min_score:
+     return "skipped_low_score"
     job["updatedAt"] = firestore.SERVER_TIMESTAMP
     job["userId"] = USER_ID
 
@@ -270,8 +272,18 @@ def fetch_jobs():
     }
 
 @app.get("/fetch-all-jobs")
-def fetch_all_jobs():
-    providers = [
+@app.get("/fetch-all-jobs")
+def fetch_all_jobs(
+    providers: str = Query(default="Remotive,Arbeitnow"),
+    min_score: int = Query(default=70),
+):
+    selected_provider_names = [
+        provider.strip()
+        for provider in providers.split(",")
+        if provider.strip()
+    ]
+
+    available_providers = [
         {
             "name": "Remotive",
             "fetch_function": lambda: fetch_remotive_provider_jobs(
@@ -285,12 +297,19 @@ def fetch_all_jobs():
         },
     ]
 
+    providers_to_run = [
+        provider
+        for provider in available_providers
+        if provider["name"] in selected_provider_names
+    ]
+
     total_fetched = 0
     total_saved = 0
     total_updated = 0
+    total_skipped_low_score = 0
     provider_results = []
 
-    for provider in providers:
+    for provider in providers_to_run:
         provider_name = provider["name"]
 
         allowed, reason = can_call_provider(provider_name)
@@ -313,17 +332,21 @@ def fetch_all_jobs():
 
             saved_count = 0
             updated_count = 0
+            skipped_low_score_count = 0
 
             for job in jobs:
-                result = save_or_update_job(job)
+                result = save_or_update_job(job, min_score=min_score)
 
                 if result == "saved":
                     saved_count += 1
                 elif result == "updated":
                     updated_count += 1
+                elif result == "skipped_low_score":
+                    skipped_low_score_count += 1
 
             total_saved += saved_count
             total_updated += updated_count
+            total_skipped_low_score += skipped_low_score_count
 
             provider_results.append(
                 {
@@ -332,6 +355,7 @@ def fetch_all_jobs():
                     "fetched": len(jobs),
                     "saved": saved_count,
                     "updated": updated_count,
+                    "skippedLowScore": skipped_low_score_count,
                 }
             )
 
@@ -346,13 +370,15 @@ def fetch_all_jobs():
 
     return {
         "message": "Multi-provider job fetch completed",
+        "selectedProviders": selected_provider_names,
+        "minimumScore": min_score,
         "totalFetched": total_fetched,
         "totalSaved": total_saved,
         "totalUpdated": total_updated,
+        "totalSkippedLowScore": total_skipped_low_score,
         "providers": provider_results,
         "quota": get_quota_status(),
     }
-
 @app.get("/provider-quotas")
 def provider_quotas_status():
     return {

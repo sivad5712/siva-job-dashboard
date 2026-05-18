@@ -4,6 +4,8 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
+
+
 import {
   addDoc,
   collection,
@@ -22,7 +24,7 @@ import { auth, db } from "./firebase";
 import "./App.css";
 
 function App() {
-  const BACKEND_API_URL =
+ const BACKEND_API_URL =
   "https://siva-job-dashboard-api-1015605186695.us-central1.run.app";
   const [user, setUser] = useState(null);
   const [email, setEmail] = useState("");
@@ -30,19 +32,28 @@ function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [loginLoading, setLoginLoading] = useState(false);
   const [theme, setTheme] = useState("light");
-  const [error, setError] = useState("");
-  const [appMessage, setAppMessage] = useState({
+ const [error, setError] = useState("");
+
+const [appMessage, setAppMessage] = useState({
   type: "",
   text: "",
 });
 
-  const [jobs, setJobs] = useState([]);
-  const [jobsLoading, setJobsLoading] = useState(false);
-  const [showResumeProfile, setShowResumeProfile] = useState(false);
-  const [providerQuotas, setProviderQuotas] = useState([]);
+const [jobs, setJobs] = useState([]);
+const [jobsLoading, setJobsLoading] = useState(false);
+const [showResumeProfile, setShowResumeProfile] = useState(false);
+
+const [providerQuotas, setProviderQuotas] = useState([]);
 const [quotaLoading, setQuotaLoading] = useState(false);
 const [importingJobs, setImportingJobs] = useState(false);
 const [showProviderStatus, setShowProviderStatus] = useState(true);
+
+const [selectedProviders, setSelectedProviders] = useState({
+  Remotive: true,
+  Arbeitnow: true,
+});
+
+const [onlyHighMatchJobs, setOnlyHighMatchJobs] = useState(true);
 
 
   const defaultResumeProfile = {
@@ -313,11 +324,34 @@ async function loadProviderQuotas() {
   }
 }
 
+function handleProviderToggle(providerName) {
+  setSelectedProviders((currentProviders) => ({
+    ...currentProviders,
+    [providerName]: !currentProviders[providerName],
+  }));
+}
+
 async function handleFetchNewJobs() {
   setImportingJobs(true);
 
   try {
-    const response = await fetch(`${BACKEND_API_URL}/fetch-all-jobs`);
+    const activeProviders = Object.entries(selectedProviders)
+  .filter(([, isSelected]) => isSelected)
+  .map(([providerName]) => providerName)
+  .join(",");
+
+if (!activeProviders) {
+  showAppMessage("error", "Select at least one job provider.");
+  setImportingJobs(false);
+  return;
+}
+
+const minimumScore = onlyHighMatchJobs ? 70 : 0;
+
+const response = await fetch(
+  `${BACKEND_API_URL}/fetch-all-jobs?providers=${activeProviders}&min_score=${minimumScore}`
+);
+
     const data = await response.json();
 
     await loadProviderQuotas();
@@ -1252,6 +1286,41 @@ async function handleUpdateJob(event) {
     </div>
   </div>
 
+{showProviderStatus && (
+  <div className="ats-import-control">
+    <label>
+      <input
+        type="checkbox"
+        checked={onlyHighMatchJobs}
+        onChange={() => setOnlyHighMatchJobs(!onlyHighMatchJobs)}
+      />
+      Only import jobs with 70%+ ATS match
+    </label>
+  </div>
+)}
+
+
+{showProviderStatus && (
+  <div className="provider-toggle-row">
+    <label>
+      <input
+        type="checkbox"
+        checked={selectedProviders.Remotive}
+        onChange={() => handleProviderToggle("Remotive")}
+      />
+      Remotive
+    </label>
+
+    <label>
+      <input
+        type="checkbox"
+        checked={selectedProviders.Arbeitnow}
+        onChange={() => handleProviderToggle("Arbeitnow")}
+      />
+      Arbeitnow
+    </label>
+  </div>
+)}
   {showProviderStatus && (
     <div className="provider-status-list">
       {providerQuotas.length === 0 ? (

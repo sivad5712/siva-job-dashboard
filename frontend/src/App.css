@@ -2110,3 +2110,76 @@ main.dashboard > .stats-grid.metrics-grid .metric-card h2 {
   color: #93c5fd;
   border-color: rgba(96, 165, 250, 0.42);
 }
+/* ===============================
+   Provider ON/OFF Controls
+   =============================== */
+
+.provider-toggle-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 14px;
+  border-radius: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.provider-toggle-row label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 900;
+  color: #334155;
+  cursor: pointer;
+}
+
+.provider-toggle-row input {
+  width: 18px;
+  height: 18px;
+  accent-color: #2563eb;
+}
+
+.app.dark-mode .provider-toggle-row {
+  background: rgba(2, 6, 23, 0.72);
+  border-color: rgba(148, 163, 184, 0.18);
+}
+
+.app.dark-mode .provider-toggle-row label {
+  color: #e5e7eb;
+}
+/* ===============================
+   ATS Import Control
+   =============================== */
+
+.ats-import-control {
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.ats-import-control label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 900;
+  color: #334155;
+  cursor: pointer;
+}
+
+.ats-import-control input {
+  width: 18px;
+  height: 18px;
+  accent-color: #2563eb;
+}
+
+.app.dark-mode .ats-import-control {
+  background: rgba(2, 6, 23, 0.72);
+  border-color: rgba(148, 163, 184, 0.18);
+}
+
+.app.dark-mode .ats-import-control label {
+  color: #e5e7eb;
+}
