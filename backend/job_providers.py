@@ -112,3 +112,45 @@ def fetch_arbeitnow_jobs(limit=30):
         jobs.append(job)
 
     return jobs
+def fetch_the_muse_jobs(keyword="software engineer", limit=30):
+    url = "https://www.themuse.com/api/public/jobs"
+
+    response = requests.get(
+        url,
+        params={
+            "page": 1,
+            "category": "Software Engineering",
+        },
+        timeout=20,
+    )
+    response.raise_for_status()
+
+    data = response.json()
+    jobs = []
+
+    for item in data.get("results", [])[:limit]:
+        company = item.get("company") or {}
+        locations = item.get("locations") or []
+        refs = item.get("refs") or {}
+
+        location_text = ""
+        if locations:
+            location_text = locations[0].get("name", "")
+
+        job = normalize_job(
+            {
+                "title": item.get("name") or "",
+                "company": company.get("name") or "",
+                "location": location_text,
+                "link": refs.get("landing_page") or "",
+                "url": refs.get("landing_page") or "",
+                "source": "The Muse",
+                "description": clean_html(item.get("contents")),
+                "jobType": "",
+            }
+        )
+
+        job["duplicateKey"] = create_duplicate_key(job)
+        jobs.append(job)
+
+    return jobs

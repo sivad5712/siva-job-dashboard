@@ -4,7 +4,11 @@ import requests
 import hashlib
 import os
 import re
-from job_providers import fetch_remotive_jobs as fetch_remotive_provider_jobs, fetch_arbeitnow_jobs
+from job_providers import (
+    fetch_remotive_jobs as fetch_remotive_provider_jobs,
+    fetch_arbeitnow_jobs,
+    fetch_the_muse_jobs,
+)
 from quota_manager import can_call_provider, record_provider_call, get_quota_status
 import firebase_admin
 from firebase_admin import credentials, firestore
@@ -15,6 +19,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://localhost:5174",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
         "https://siva-job-dashboard.web.app",
         "https://siva-job-dashboard.firebaseapp.com",
     ],
@@ -274,7 +280,7 @@ def fetch_jobs():
 @app.get("/fetch-all-jobs")
 @app.get("/fetch-all-jobs")
 def fetch_all_jobs(
-    providers: str = Query(default="Remotive,Arbeitnow"),
+    providers: str = Query(default="Remotive,Arbeitnow,The Muse"),
     min_score: int = Query(default=70),
 ):
     selected_provider_names = [
@@ -295,6 +301,13 @@ def fetch_all_jobs(
             "name": "Arbeitnow",
             "fetch_function": lambda: fetch_arbeitnow_jobs(limit=30),
         },
+        {
+    "name": "The Muse",
+    "fetch_function": lambda: fetch_the_muse_jobs(
+        keyword="software engineer",
+        limit=30,
+    ),
+},
     ]
 
     providers_to_run = [

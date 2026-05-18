@@ -16,7 +16,15 @@ provider_quotas = {
         "reset_at": time.time() + 60 * 60,
         "paused_until": None,
     },
+    "The Muse": {
+    "max_calls": 20,
+    "used_calls": 0,
+    "reset_after_seconds": 60 * 60,
+    "reset_at": time.time() + 60 * 60,
+    "paused_until": None,
+},
 }
+
 
 
 def can_call_provider(provider_name):

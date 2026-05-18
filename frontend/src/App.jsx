@@ -24,7 +24,8 @@ import { auth, db } from "./firebase";
 import "./App.css";
 
 function App() {
- const BACKEND_API_URL =
+
+  const BACKEND_API_URL =
   "https://siva-job-dashboard-api-1015605186695.us-central1.run.app";
   const [user, setUser] = useState(null);
   const [email, setEmail] = useState("");
@@ -51,6 +52,7 @@ const [showProviderStatus, setShowProviderStatus] = useState(true);
 const [selectedProviders, setSelectedProviders] = useState({
   Remotive: true,
   Arbeitnow: true,
+  "The Muse": true,
 });
 
 const [onlyHighMatchJobs, setOnlyHighMatchJobs] = useState(true);
@@ -349,16 +351,26 @@ if (!activeProviders) {
 const minimumScore = onlyHighMatchJobs ? 70 : 0;
 
 const response = await fetch(
-  `${BACKEND_API_URL}/fetch-all-jobs?providers=${activeProviders}&min_score=${minimumScore}`
+  `${BACKEND_API_URL}/fetch-all-jobs?providers=${encodeURIComponent(
+    activeProviders
+  )}&min_score=${minimumScore}`
 );
+
+if (!response.ok) {
+  throw new Error(`Backend error ${response.status}`);
+}
 
     const data = await response.json();
 
     await loadProviderQuotas();
 
-    showAppMessage(
+showAppMessage(
   "success",
-  `Job import complete: fetched ${data.totalFetched || 0}, saved ${data.totalSaved || 0}, updated ${data.totalUpdated || 0}.`
+  `Job import complete: fetched ${data.totalFetched || 0}, saved ${
+    data.totalSaved || 0
+  }, updated ${data.totalUpdated || 0}, skipped low score ${
+    data.totalSkippedLowScore || 0
+  }.`
 );
 
 window.scrollTo({
@@ -368,7 +380,7 @@ window.scrollTo({
 
   } catch (err) {
     console.error("Error fetching new jobs:", err);
-    showAppMessage("error", "Could not fetch new jobs. Please try again.");
+    showAppMessage("error", `Could not fetch new jobs: ${err.message}`);
   } finally {
     setImportingJobs(false);
   }
@@ -1319,6 +1331,16 @@ async function handleUpdateJob(event) {
       />
       Arbeitnow
     </label>
+
+    <label>
+  <input
+    type="checkbox"
+    checked={selectedProviders["The Muse"]}
+    onChange={() => handleProviderToggle("The Muse")}
+  />
+  The Muse
+</label>
+
   </div>
 )}
   {showProviderStatus && (
@@ -1504,6 +1526,7 @@ async function handleUpdateJob(event) {
   <option value="All">All Sources</option>
   <option value="Remotive">Remotive</option>
   <option value="Arbeitnow">Arbeitnow</option>
+  <option value="The Muse">The Muse</option>
   <option value="LinkedIn">LinkedIn</option>
   <option value="Indeed">Indeed</option>
   <option value="Company Site">Company Site</option>
